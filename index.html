@@ -85,10 +85,19 @@
   <div class="article-inner">
     
     
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
+    </h1>
+  
+
+      </header>
+    
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <hr>
-<h2 id="Python多线程中的setDaemon"><a href="#Python多线程中的setDaemon" class="headerlink" title="Python多线程中的setDaemon"></a>Python多线程中的setDaemon</h2><h1 id="Python多线程中的setDaemon-1"><a href="#Python多线程中的setDaemon-1" class="headerlink" title="Python多线程中的setDaemon"></a>Python多线程中的setDaemon</h1><h3 id="关于thread-setDaemon"><a href="#关于thread-setDaemon" class="headerlink" title="关于thread.setDaemon()"></a>关于thread.setDaemon()</h3><p>若在主线程中创建了子线程，当主线程结束时根据子线程daemon（设置thread.setDaemon(True)）属性值的不同可能会发生下面的两种情况之一：</p>
+        <h1 id="Python多线程中的setDaemon"><a href="#Python多线程中的setDaemon" class="headerlink" title="Python多线程中的setDaemon"></a>Python多线程中的setDaemon</h1><h3 id="关于thread-setDaemon"><a href="#关于thread-setDaemon" class="headerlink" title="关于thread.setDaemon()"></a>关于thread.setDaemon()</h3><p>若在主线程中创建了子线程，当主线程结束时根据子线程daemon（设置thread.setDaemon(True)）属性值的不同可能会发生下面的两种情况之一：</p>
 <ul>
 <li>如果某个子线程的daemon属性为False，主线程结束时会检测该子线程是否结束，如果该子线程还在运行，则主线程会等待它完成后再退出；</li>
 <li>如果某个子线程的daemon属性为True，主线程运行结束时不对这个子线程进行检查而直接退出，同时所有daemon值为True的子线程将随主线程一起结束，而不论是否运行完成。</li>
@@ -101,7 +110,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://wy66613.github.io/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" data-id="clmqnobkj0001j4czgx0d8qfa" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://wy66613.github.io/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" data-id="clmqnq5t00001egcz3q6i1any" data-title="Python多线程中的setDaemon" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -152,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://wy66613.github.io/blog/2023/09/20/hello-world/" data-id="clmqnobka0000j4cz33cnamb3" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://wy66613.github.io/blog/2023/09/20/hello-world/" data-id="clmqnq5ss0000egcz3iwl5wqr" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -195,7 +204,7 @@
       <ul>
         
           <li>
-            <a href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">(no title)</a>
+            <a href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
           </li>
         
           <li>
