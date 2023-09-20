@@ -1,7 +1,6 @@
 ---
 title: Python多线程中的setDaemon
 date: 2023-09-19 12:10:16
-comments: true
 ---
 
 ### 关于thread.setDaemon()
