@@ -105,4 +105,4 @@ theme: butterfly
 deploy:
   type: git
   repository: https://github.com/wy66613/blog.git
-  branch: ph-pages
+  branch: gh-pages
