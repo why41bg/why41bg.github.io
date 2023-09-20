@@ -75,53 +75,6 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-Python多线程中的setDaemon" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" class="article-date">
-  <time class="dt-published" datetime="2023-09-19T17:21:37.452Z" itemprop="datePublished">2023-09-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="关于thread-setDaemon"><a href="#关于thread-setDaemon" class="headerlink" title="关于thread.setDaemon()"></a>关于thread.setDaemon()</h3><p>若在主线程中创建了子线程，当主线程结束时根据子线程daemon（设置thread.setDaemon(True)）属性值的不同可能会发生下面的两种情况之一：</p>
-<ul>
-<li>如果某个子线程的daemon属性为False，主线程结束时会检测该子线程是否结束，如果该子线程还在运行，则主线程会等待它完成后再退出；</li>
-<li>如果某个子线程的daemon属性为True，主线程运行结束时不对这个子线程进行检查而直接退出，同时所有daemon值为True的子线程将随主线程一起结束，而不论是否运行完成。</li>
-</ul>
-<p>属性daemon的值默认为False，如果需要修改，必须在调用start()方法启动线程之前进行设置。</p>
-<h3 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h3><p>当启动一个线程时设置thread.setDaemon(True)，则该线程为守护线程（也可以称为后台线程）。表示该线程是不重要的,进程退出时不需要等待这个线程执行完成。这样做的意义在于：避免子线程无限死循环，导致退不出程序，也就是避免了孤儿进程的出现。</p>
-<p>当不设置或者thread.setDaemon(False)时，主进程执行结束时，会等待线程结束。</p>
-<p>应用：如保持网络连接(发送keep-alive心跳包)或者后台监控的线程,负责内存管理与垃圾回收(实际上JVM就是这样做的)，这些线程与实际提供应用服务的线程有了逻辑上的”前&#x2F;后”的概念,而如果主线程已经退出,那么这些后台线程也没有存在的必要。<br>如果没有这一机制,那么我们在主线程完成之后,还必须逐个地检查后台线程,然后在主线程退出之前,逐个地关闭它们. 有了前后线程的区分, 我们只需要负责管理前台线程, 完成主要的逻辑处理之后退出即可.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://wy66613.github.io/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" data-id="clmqntoyk0000n0cz8c5rgqlk" data-title="Python多线程中的setDaemon" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
     <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/blog/2023/09/20/hello-world/" class="article-date">
@@ -161,7 +114,54 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://wy66613.github.io/blog/2023/09/20/hello-world/" data-id="clmqntoys0001n0czf65aea2v" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://wy66613.github.io/blog/2023/09/20/hello-world/" data-id="clmr6eu4o00017gcz7vmp7daw" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Python多线程中的setDaemon" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/blog/2023/09/19/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" class="article-date">
+  <time class="dt-published" datetime="2023-09-19T04:10:16.000Z" itemprop="datePublished">2023-09-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/blog/2023/09/19/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="关于thread-setDaemon"><a href="#关于thread-setDaemon" class="headerlink" title="关于thread.setDaemon()"></a>关于thread.setDaemon()</h3><p>若在主线程中创建了子线程，当主线程结束时根据子线程daemon（设置thread.setDaemon(True)）属性值的不同可能会发生下面的两种情况之一：</p>
+<ul>
+<li>如果某个子线程的daemon属性为False，主线程结束时会检测该子线程是否结束，如果该子线程还在运行，则主线程会等待它完成后再退出；</li>
+<li>如果某个子线程的daemon属性为True，主线程运行结束时不对这个子线程进行检查而直接退出，同时所有daemon值为True的子线程将随主线程一起结束，而不论是否运行完成。</li>
+</ul>
+<p>属性daemon的值默认为False，如果需要修改，必须在调用start()方法启动线程之前进行设置。</p>
+<h3 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h3><p>当启动一个线程时设置thread.setDaemon(True)，则该线程为守护线程（也可以称为后台线程）。表示该线程是不重要的,进程退出时不需要等待这个线程执行完成。这样做的意义在于：避免子线程无限死循环，导致退不出程序，也就是避免了孤儿进程的出现。</p>
+<p>当不设置或者thread.setDaemon(False)时，主进程执行结束时，会等待线程结束。</p>
+<p>应用：如保持网络连接(发送keep-alive心跳包)或者后台监控的线程,负责内存管理与垃圾回收(实际上JVM就是这样做的)，这些线程与实际提供应用服务的线程有了逻辑上的”前&#x2F;后”的概念,而如果主线程已经退出,那么这些后台线程也没有存在的必要。<br>如果没有这一机制,那么我们在主线程完成之后,还必须逐个地检查后台线程,然后在主线程退出之前,逐个地关闭它们. 有了前后线程的区分, 我们只需要负责管理前台线程, 完成主要的逻辑处理之后退出即可.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://wy66613.github.io/blog/2023/09/19/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/" data-id="clmr6eu4e00007gcz0zg184ri" data-title="Python多线程中的setDaemon" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -204,11 +204,11 @@
       <ul>
         
           <li>
-            <a href="/blog/2023/09/20/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
+            <a href="/blog/2023/09/20/hello-world/">Hello World</a>
           </li>
         
           <li>
-            <a href="/blog/2023/09/20/hello-world/">Hello World</a>
+            <a href="/blog/2023/09/19/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%AD%E7%9A%84setDaemon/">Python多线程中的setDaemon</a>
           </li>
         
       </ul>
