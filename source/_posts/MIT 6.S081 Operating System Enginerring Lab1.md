@@ -143,7 +143,7 @@ Unknown option: b
 
 
 
-# sleep(easy)😃
+# sleep([easy](https://pdos.csail.mit.edu/6.828/2020/labs/guidance.html))😃
 
 Lab1 的第一个实验是实现**sleep 系统调用**，这个比较简单，理解了上面的内容就行了。完整过评测代码如下：
 
@@ -182,7 +182,7 @@ atoi(const char *s)
 
  
 
-# pingping(easy)😃
+# pingping([easy](https://pdos.csail.mit.edu/6.828/2020/labs/guidance.html))😃
 
 Lab1 的第二个实验主要考察对 `fork系统调用` 和 `pipe` 的理解。该实验的流程如下：
 
