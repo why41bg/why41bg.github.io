@@ -6,7 +6,11 @@ tags:
 - XV6
 ---
 
-> 本 Lab1 的具体实验要求在[这里](https://pdos.csail.mit.edu/6.828/2021/labs/util.html)。
+> This lab will familiarize you with xv6 and its system calls.
+>
+> 本实验旨在实现几个 unix 实用工具，帮助熟悉 XV6 的开发环境以及系统调用。
+>
+> 实验的具体要求在[这里](https://pdos.csail.mit.edu/6.828/2021/labs/util.html)。
 
 # 修改测评程序
 
@@ -18,13 +22,13 @@ tags:
 
 在实现功能（例如sleep）之后，需要更新Makefile的UPROGS部分，如：
 
-```
+```bash
 $U/_sleep\
 ```
 
 另外测评命令修改为：
 
-```ba
+```bash
 sudo python3 grade-lab-util sleep
 ```
 
@@ -57,13 +61,13 @@ int main(int argc, char* argv[])
 
 测试如下：
 
-```
-# ./main
+```bash
+$ ./main
 argc:0, argv[0]:./main
-# ./main -p
+$ ./main -p
 argc:0, argv[0]:./main
 argc:1, argv[1]:-p
-# ./main -p 80
+$ ./main -p 80
 argc:0, argv[0]:./main
 argc:1, argv[1]:-p
 argc:2, argv[2]:80
@@ -133,10 +137,10 @@ int main(int argc,char*argv[])
 
 结果如下：
 
-```
-# ./main -a test
+```bash
+$ ./main -a test
 -a test
-# ./main -b 
+$ ./main -b 
 ./main: option requires an argument -- 'b'
 Unknown option: b
 ```
@@ -167,14 +171,16 @@ int main(int argc, char *argv[]){
 
 注意一下导入的包，user.h 为 `XV6` 提供的系统函数，types.h 为其提供的变量类型。
 
-需要补充的知识点可能就是第 11 行的 `atoi()` 函数了，该函数用于将字符串类型转化为整型。在 `XV6` 系统中对于该函数的实现如下：
+需要补充的知识点有：
+
+1. 在 Unix 系统里面，默认情况下 `0` 代表 `stdin`，`1 `代表 `stdout`，`2 `代表 `stderr` 。这3个文件描述符在进程创建时就已经打开了的（从父进程复制过来的），可以直接使用
+2. 第 11 行的 `atoi()` 函数，该函数用于将字符串类型转化为整型。在 `XV6` 系统中对于该函数的实现如下：
 
 ```c
 int
 atoi(const char *s)
 {
   int n;
-
   n = 0;
   while('0' <= *s && *s <= '9')
     n = n*10 + *s++ - '0';
@@ -182,7 +188,7 @@ atoi(const char *s)
 }
 ```
 
- 
+
 
 # pingping([easy](https://pdos.csail.mit.edu/6.828/2020/labs/guidance.html))😃
 
@@ -255,6 +261,107 @@ int main(int argc, char* argv[]){
                 exit(0);
         }
 
+}
+```
+
+
+
+# find([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))😃
+
+该实验主要仿照 **ls.c** 的实现思路完成，额外的注意点如下：
+
+1. 当前路径为文件，直接检查是否是要查找的文件名
+2. 当前路径为文件夹，对该目录下的所有文件递归，**. 和 .. 除外**
+
+完整的过评测代码如下：
+
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/fs.h"
+
+void
+compare(char *path, char *name)
+{
+    int fp = 0;
+    int cp = 0;
+    while(path[fp] != 0){
+        cp = 0;
+        int tp = fp;
+        while(name[cp] != 0){
+            if(path[tp] != name[cp]) break;
+            cp++;
+            tp++;
+        }
+        if(name[cp] == 0){
+            printf("%s\n", path);
+            return;
+        }
+        fp++;
+    }
+}
+
+void
+find(char *path, char *name)
+{
+    char buf[512], *p;
+    int fd;
+    struct dirent de;
+    struct stat st;
+
+    if((fd = open(path, 0)) < 0){
+        fprintf(2, "find: cannot open %s\n", path);
+        return;
+    }
+
+    if(fstat(fd, &st) < 0){
+        fprintf(2, "find: cannot stat %s\n", path);
+        close(fd);
+        return;
+    }
+
+    switch(st.type){
+        case T_FILE:
+            compare(path, name);
+            break;
+        
+        case T_DIR:
+            // Checks if the total length of the path and the directory entry name exceeds the size of the buffer buf
+            if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
+                printf("find: path too long\n");
+                break;
+            }
+            strcpy(buf, path);
+            p = buf+strlen(buf);
+            *p++ = '/';
+            while(read(fd, &de, sizeof(de)) == sizeof(de)){
+                if(de.inum == 0) continue;
+                if(de.name[0] == '.' && de.name[1] == 0) continue;
+                if(de.name[0] == '.' && de.name[1] == '.' && de.name[2] == 0) continue;
+                memmove(p, de.name, DIRSIZ);
+                // Set EOF
+                p[DIRSIZ] = 0;
+                if(stat(buf, &st) < 0){
+                    printf("find: cannot stat %s\n", buf);
+                    continue;
+                }
+                find(buf, name);
+            }
+            break;
+    }
+    close(fd);
+}
+
+int
+main(int argc, char *argv[])
+{
+    if(argc<3){
+        fprintf(2, "Usage: find [path] [filename]\n");
+        exit(-1);
+    }
+    find(argv[1], argv[2]);
+    exit(0);
 }
 ```
 
