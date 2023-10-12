@@ -388,3 +388,81 @@ main(int argc, char *argv[])
 }
 ```
 
+
+
+# xargs([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))😃
+
+首先介绍一下什么是**xargs**。简单来说，**xargs 命令** 是给其他命令传递参数的一个过滤器，也是组合多个命令的一个工具。它擅长将标准输入数据转换成命令行参数，xargs 能够处理管道或者 stdin 并将其转换成特定命令的命令参数。xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行。xargs 的默认命令是 echo，空格是默认定界符。这意味着通过管道传递给 xargs 的输入将会包含换行和空白，不过通过 xargs 的处理，换行和空白将被空格取代。xargs 是构建单行命令的重要组件之一。
+
+了解了这些之后，就清楚了任务是什么：从stdin中获取到参数，拼接到xargs命令后面。如果stdin中的输出是多行，则需要拼接多行命令执行。
+
+程序代码具体流程如下：
+
+1. 将xargs传入的命令单独保存，将xargs传入的参数单独保存到一个数组中；
+2. 将stdin中获取到的数据根据换行符"\n"，拼接到xargs传入参数的数组后面；
+3. 对每行参数依据空格进行划分；
+4. 调用一个 **fork()系统调用和exec()系统调用** 执行命令。
+
+**这里有个常用的写法要注意，先调用fork，再在子进程中调用exec。尽管有些浪费，但是优化过程后面再提。**
+
+完整的过评测代码如下：
+
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/param.h"
+#define MAXLEN 100
+
+int main(int argc, char *argv[])
+{
+    if(argc < 2){
+        fprintf(2, "Usage: xargs [command]\n");
+        exit(1);
+    }
+    // Get the command
+    char *cmd = argv[1];
+    
+    char nargv[MAXARG][MAXLEN];
+    char *pnargv[MAXARG];
+    char buf;
+    
+    // Loop lines
+    while(1){
+        memset(nargv, 0, MAXARG*MAXLEN);
+        for(int i = 1; i < argc; i++) strcpy(nargv[i-1], argv[i]);
+        int cargc = argc - 1;
+        int offset = 0;
+        int is_read = 0;
+        // Get all params of one line
+        while((is_read = read(0, &buf, 1)) > 0){
+            if(buf == ' '){
+                cargc++;
+                offset = 0;
+                continue;
+            }
+            if(buf == '\n'){
+                break;
+            }
+            if(offset == MAXLEN){
+                fprintf(2, "xargs: parameter too long\n");
+                exit(1);
+            }
+            if(cargc == MAXARG){
+                fprintf(2, "xargs: too many arguments\n");
+                exit(1);
+            }
+            nargv[cargc][offset++] = buf;
+        }
+        if(is_read <= 0) break;
+        for(int i = 0; i <= argc; i++) pnargv[i] = nargv[i];
+        if(fork() == 0){
+            exec(cmd, pnargv);
+            exit(1);
+        }
+        wait(0);
+    }
+    exit(0);
+}
+```
+
