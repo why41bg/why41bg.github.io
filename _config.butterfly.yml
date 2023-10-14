@@ -209,7 +209,7 @@ footer:
   owner:
     enable: true
     since: 2023
-  custom_text: Good luck & Have fun
+  custom_text: Good luck && Have fun
   copyright: true # Copyright of theme and framework
 
 # aside (側邊欄)
