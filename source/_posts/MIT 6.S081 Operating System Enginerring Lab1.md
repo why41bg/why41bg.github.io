@@ -4,6 +4,8 @@ date: 2023-10-10 17:48:36
 tags:
 - OS
 - XV6
+categories:
+- MIT 6.S081
 ---
 
 > This lab will familiarize you with xv6 and its system calls.
