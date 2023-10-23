@@ -154,4 +154,79 @@ categories:
    }
    ```
 
-至此，完整的Lab代码就已经全部完成🌼🌼
+至此，完整的Lab代码就已经全部完成。🌼🌼
+
+
+
+## Sysinfo ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))😵‍💫
+
+In this assignment you will add a system call, `sysinfo`, that collects information about the running system.
+
+简单来说，就是需要添加一个系统调用，打印出系统的一些信息。添加系统调用的大致步骤和上一个实验相同，这里不再赘述。
+
+**内核空间中**已经提前为我们定义好了一个结构体：**struct sysinfo**。定义文件在 `kernel/sysinfo.h` 中。我们需要做的就是在内核空间中完成 sysinfo 的收集，也就是完善这个结构体，然后将该结构体从内核空间复制到用户空间，从而返回给用户程序。
+
+下面仅记录一下需要在内核空间中添加的内核程序，采用从下向上的顺序依次说明：
+
+1. 最底层也就是最终到达的内核程序为 `kernel/sysproc.c` 文件中的内核程序。在该文件中定义一个 `sys_sysinfo` 函数，该函数的主要任务就是获取到内核空间中的 sysinfo 结构体，然后将该结构体从内核空间复制到用户空间（**强隔离性**），函数定义如下：
+   ```c
+   uint64
+   sys_sysinfo(void)
+   {
+     // 获取用户在sys_sysinfo函数执行中提供的sysinfo结构体地址
+     uint64 addr;
+     if(argaddr(0, &addr)<0)
+       return -1;
+   
+     // 填充sysinfo结构体
+     struct sysinfo sys_info;
+     sys_info.freemem = freemem();
+     sys_info.nproc = nproc();
+   
+     // 将sysinfo结构体从内核空间复制到用户空间
+     if(copyout(myproc()->pagetable, addr, (char *)&sys_info, sizeof(sys_info)) < 0)
+       return -1;
+     return 0;
+   }
+   ```
+
+   **copyout 函数在这里表示将 proc 中的 pagetable 中从 sys_info 位置开始的 sys_info 字节复制到 addr 中。**
+
+2. 对上述函数中的 `freemem()` 函数进行定义，在 `kernel/kalloc.c` 中，函数定义如下：
+   ```c
+   uint64
+   freemem(void)
+   {
+     struct run *r;
+     r = kmem.freelist;
+     uint64 kmemsz = 0;
+     while(r)
+     {
+       kmemsz += 4096;
+       r = r->next;
+     }
+     return kmemsz;
+   }
+   ```
+
+   freelist 为空闲内存队列指针，如果存在空闲内存就 +4096，直到队列末尾。
+
+3. 还需要对 `nproc()` 函数进行定义，在 `kernel/proc.c` 中，函数定义如下：
+   ```c
+   uint64
+   nproc(void)
+   {
+     struct proc *p;
+     uint64 cnt = 0;
+   
+     // 遍历proc[NPROC]数组
+     for(p=proc; p<&proc[NPROC];p++)
+       if(p->state != UNUSED) cnt++;
+   
+     return cnt;
+   }
+   ```
+
+   proc[NPROC] 数组存放每一个进程的结构体，state存放进程状态。遍历所有进程，当状态不为 UNUSED 时计数器 +1。
+
+4. 在内核空间中实现上面三个函数后，最后只需要打通从用户空间到内核空间之间的通路即可，步骤同上一个Lab一样。至此，此 Lab 也全部完成。🌼🌼
