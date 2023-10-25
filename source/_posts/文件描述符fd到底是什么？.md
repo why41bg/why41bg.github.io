@@ -50,7 +50,7 @@ struct files_struct {
 
 files_struct 结构体管理进程打开的所有文件的方法就是——将所有打开的文件放进一个数组中，用数组管理的方式。这里这个数组就是 `struct file * fd_array[NR_OPEN_DEFAULT]`，fd_array 是一个二维数组，或者说是一个指针数组，这个数组的元素是指向 file 结构体的指针。不难猜想，这个这个 file 结构体就应该指某个具体的打开文件。
 
-而关于 **fd** 的密码就藏在了 **struct fdtable fdtab** 中，关于 **fdtable** 这个结构体的代码如下：
+**fd** 的真面目就藏在了 **struct fdtable fdtab** 这句中，关于 **fdtable** 这个结构体的代码如下：
 
 ```c
 struct fdtable {
