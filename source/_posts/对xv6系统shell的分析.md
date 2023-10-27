@@ -87,14 +87,16 @@ buf 用来存储用户输入的命令，如果成功将用户输入的命令写�
 
 # 解析命令
 
-xv6中负责解析用户命令的代码部分从8150开始，下面按顺序依次分析一下这部分代码。首先定义了两个字符数组，whitespace 数组包含了表示空白字符的字符，symbols 包含了一些特殊符号。定义如下：
+xv6中负责解析用户命令的代码部分从8150开始，下面按顺序依次分析一下这部分代码，中间会穿插一些其他部分的函数，不要担心，都很简单。从8150开始，首先定义了两个字符数组，whitespace 数组包含了表示空白字符的字符，symbols 包含了一些特殊符号。定义如下：
 
 ```c
 char whitespace[] = "\t\r\n\v";
 char symbols[] = "<|>&;()";
 ```
 
-接下来是一个解析命令获得其中第一个标记的函数 `gettoken`，该函数实现如下：
+## gettoken
+
+首先是一个解析命令获得其中第一个标记的函数 `gettoken`，该函数实现如下：
 
 ```c
 int
@@ -152,6 +154,8 @@ gettoken(char **ps, char *es, char **q, char **eq)
 
 接下来判断 `eq` 是否为空指针，如果为空，则将 `eq` 指向 `s`，即保存当前标记的结束位置。再次遍历字符串，直到 `s` 指向字符串的末尾或者遇到非空白字符，如果遇到空白字符，将 `s` 指向空白字符的下一位，然后更新指针 `ps` 的值，使其指向当前位置，以便下次调用函数时从正确的位置开始解析。最后将 `ret` 标记返回。
 
+## peek
+
 下面是一个 `peek` 函数，该函数用来查看第一个标记（如果有）是否属于给定的一组标记字符，该函数定义如下：
 
 ```c
@@ -170,24 +174,47 @@ peek(char **ps, char *es, char *toks)
 
 该函数接受3个参数，第3个参数是一组标记字符的字符串指针 `char *toks`。该函数的代码逻辑和 `gettoken` 函数大致类似。目的在于获得命令字符串中的第一个匹配到的标记（如果存在），然后判定是否属于给定的一组标记字符，如果同时满足上述两个条件，则返回1（True），否则返回0（False）。
 
-接下来是在 shell 主函数中调用的 `parsecmd` 函数，这里先跳过它，介绍它下面的 `parseline` 函数，该函数定义如下：
+## execcmd，pipecmd，listcmd，backcmd
+
+在继续分析后续的代码之前，要先分析一下 Constructors 部分（8050）中的4个函数：`execcmd`，`pipecmd`，`listcmd`，`backcmd`。以 `execcmd` 函数举例说明，其函数定义如下：
 
 ```c
-struct *cmd
-parseline(char **ps, char *es)
+struct cmd {
+	int type;
+}
+
+struct execcmd {
+	int type;
+	char *argv[MAXARGS];
+	char *eargv[MAXARGS];
+}
+
+struct cmd*
+execcmd(void)
 {
-    struct cmd *cmd;
+    struct execcmd *cmd;
     
-    cmd = parsepipe(ps, es);
-    while(peek(ps, es, "&")){
-        gettoken(ps, es, 0, 0);
-        cmd = backcmd(cmd);
-    }
-    if(peek(ps, es, ";")){
-        gettoken(ps, es, 0, 0);
-        cmd = listcmd(cmd, parseline(ps, es));
-    }
-    return cmd;
+    cmd = malloc(sizeof(*cmd));
+    memset(cmd, 0, sizeof(*cmd));
+    cmd->type = EXEC;
+    return (struct cmd*) cmd;
 }
 ```
 
+`struct cmd` 定义了命令对象的基本结构，`struct execcmd` 定义了一个特定类型的命令对象。
+
+该函数用于创建一个 `struct execcmd` 对象，其中关键的部分在于 `cmd->type = EXEC`，表示这个命令对象的指令类型为 EXEC，返回时将类型强制转换为 `struct cmd*`，这样做可以方便地创建和处理不同类型的命令对象。其余函数的逻辑和作用大致都是相同的。
+
+## parseline，parsepipe，parseredirs，parseblock，parseexec
+
+接下来回到之前的介绍顺序中来，下面一个函数是在 shell 主函数中调用的 `parsecmd` 函数，但是这里先跳过它，介绍它下面的其他几个函数。在它之后有 `parseline`，`parsepipe`，`parseredirs`，`parseblock`，`parseexec` 5个函数，接下来按照其调用栈的顺序依次介绍。
+
+### parseline
+
+### parsepipe
+
+### parseredirs
+
+### parseblock
+
+### parseexec
