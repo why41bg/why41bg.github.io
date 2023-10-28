@@ -85,6 +85,8 @@ buf 用来存储用户输入的命令，如果成功将用户输入的命令写�
 
 第二个 if 条件语句（8024）为进入子进程的入口，执行除 `cd` 以外的用户程序，`fork1` 函数创建一个子进程并返回进程号。在子进程中，首先通过 `parsecmd` 函数（8217）解析用户命令，该函数返回一个指向 `struct cmd` 结构体的指针，该结构体记录了一个 int 类型的 cmd 变量表示用户命令（7856）。然后通过 `runcmd` 函数执行具体的用户命令。
 
+`runcmd` 函数其实就是根据解析度命令调用相对应的 system call。值得注意的是，这些命令的执行都是在 shell 程序 `fork` 出来的子程序中执行的，主程序使用 `wait` 系统调用等待子程序的完成。随后又再次进入 while 循环接收用户输入（可以联系一下我们平时使用 shell 的情形）。
+
 # 解析命令
 
 xv6中负责解析用户命令的代码部分从8150开始，下面按顺序依次分析一下这部分代码，中间会穿插一些其他部分的函数，不要担心，都很简单。从8150开始，首先定义了两个字符数组，whitespace 数组包含了表示空白字符的字符，symbols 包含了一些特殊符号。定义如下：
@@ -207,14 +209,74 @@ execcmd(void)
 
 ## parseline，parsepipe，parseredirs，parseblock，parseexec
 
-接下来回到之前的介绍顺序中来，下面一个函数是在 shell 主函数中调用的 `parsecmd` 函数，但是这里先跳过它，介绍它下面的其他几个函数。在它之后有 `parseline`，`parsepipe`，`parseredirs`，`parseblock`，`parseexec` 5个函数，接下来按照其调用栈的顺序依次介绍。
-
-### parseline
-
-### parsepipe
+接下来回到之前的介绍顺序中来，下面一个函数是在 shell 主函数中调用的 `parsecmd` 函数，但是这里先跳过它，介绍它下面的其他几个函数。在它之后有 `parseline`，`parsepipe`，`parseredirs`，`parseblock`，`parseexec` 5个函数，这些函数的作用都是解析用户命令创建对应的命令。下面以 `parseredirs` 函数为例，说明一下具体的解析用户命令的过程：
 
 ### parseredirs
 
-### parseblock
+该函数实现如下：
 
-### parseexec
+```c
+struct cmd*
+parseredirs(struct cmd *cmd, char **ps, char *es)
+{
+    int tok;
+    char *q, *eq;
+    
+    while(peek(ps, es, "<>")){
+        tok = gettoken(ps, es, 0, 0);
+        if(gettoken(ps, es, &q, &eq) != 'a')
+            panic("missing file for redirction");
+        switch(tok){
+        case '<':
+            cmd = redircmd(cmd, q, eq, 0_RDONLY, 0);
+            break;
+        case '>':
+            cmd = redircmd(cmd, q, eq, 0_WRONLY|0_CREATE, 1);
+            break;
+        case '+':  // >>
+            cmd = redircmd(cmd, q, eq, 0_WRONLY|0_CREATE, 1);
+            break;
+        }
+    }
+    return cmd;
+}
+```
+
+此函数的主要逻辑如下：
+
+1. 进入一个循环，在 `ps` 和 `es` 范围内检测重定向符 `<>`。
+2. 使用 `gettoken` 函数获取下一个标记，并赋给 tok。
+3. 根据 tok 的不同创建对应的重定向命令，最后将创建的重定向命令返回。
+
+## parsecmd
+
+回到主线中来，`parsecmd` 实现了一个简化的命令解析器，将用户输入的命令解析，并返回一个表示命令的数据结构 `struct cmd*`。下面是 `parsecmd` 函数的定义：
+
+```c
+struct cmd*
+parsecmd(char *s)
+{
+    char *es;
+    struct cmd *cmd;
+    
+    es = s + strlen(s);
+    cmd = parseline(&s, es);
+    peek(&s, es, "");
+    if(s != es)){
+        printf(2, "leftovers: %s\n", s);
+        panic("syntax");
+    }
+    nulterminate(cmd);
+    return cmd;
+}
+```
+
+该函数主要有3个关键点，第一个是通过函数 `parseline` 解析命令。第二个是通过 if 条件语句检查是否还有剩余字符，有则输出错误信息并终止程序。第三个第一个是使用 `nulterminate` 函数在命令数据结构中添加字符串结束符。最后将命令数据结构返回。
+
+# 小结
+
+到此为止，关于用户程序 shell 在xv6的代码文档长达11页的重要部分分析完毕。其实不难发现，整个 shell 的实现并不难，本质上其实就是不断读取并一个解析用户输入字符串，然后请求响应系统服务完成用户命令的过程。请记住，**shell 是一个用户程序，而不是内核程序。**
+
+另一个需要理解的点在于为什么要将 `fork` 和 `exec` 分为两个独立的系统调用——这种设计使得 shell 可以在子进程执行指定程序之前对子进程进行响应的修改（参见 `runcmd` 函数的实现）。
+
+（如果你看到了这里，我还有一番话想对你说。**想要真正理解一个操作系统及其设计思想确实很难，但请你多多鼓励自己，真的真的要坚持下去，因为我们不都觉得这是一件超酷的事情吗！！**送你花花🌼🌼）
