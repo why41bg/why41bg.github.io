@@ -6,22 +6,14 @@
       avatar: https://d33wubrfki0l68.cloudfront.net/6657ba50e702d84afb32fe846bed54fba1a77add/827ae/logo.svg
       descr: 快速、简单且强大的网志框架
     - name: xytlib
-      link: https://www.xytlib.top/
+      link: https://blog.xytlib.top/
       avatar: https://pic.imgdb.cn/item/6506a905661c6c8e544f7bdd.jpg
-      descr: xyt的个人主页
+      descr: xyt的个人博客
 
 - class_name: 网站
   class_desc: 值得推荐的网站
   link_list:
-    - name: Youtube
-      link: https://www.youtube.com/
-      avatar: https://i.loli.net/2020/05/14/9ZkGg8v3azHJfM1.png
-      descr: 视频网站
     - name: xyt's chatgpt
       link: https://chat.xytlib.top/
       avatar: https://chat.xytlib.top/favicon.ico
       descr: 感谢xyt自建chatgpt网页版
-    - name: Twitter
-      link: https://twitter.com/
-      avatar: https://i.loli.net/2020/05/14/5VyHPQqR6LWF39a.png
-      descr: 社交分享平台
