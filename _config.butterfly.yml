@@ -164,7 +164,7 @@ post_copyright:
 
 # Sponsor/reward
 reward:
-  enable: true
+  enable: false
   QR_code:
     - img: /images/wechat.jpg
       link:
@@ -235,7 +235,7 @@ aside:
       link: https://github.com/wy66613
   card_announcement:
     enable: true
-    content: my email:2425332276@qq.com。欢迎大佬为我指点迷津 :)
+    content: 暂无公告
   card_recent_post:
     enable: true
     limit: 5 # if set 0 will show all
