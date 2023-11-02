@@ -13,7 +13,7 @@
 - class_name: 网站
   class_desc: 值得推荐的网站
   link_list:
-    - name: xyt's chatgpt
-      link: https://chat.xytlib.top/
-      avatar: https://chat.xytlib.top/favicon.ico
-      descr: 感谢xyt自建chatgpt网页版
+    - name: chatgpt-next-web
+      link: https://gpt.wyylib.top/
+      avatar: https://gpt.wyylib.top/favicon.ico
+      descr: 使用chatgpt-next-web搭建的web版gpt
