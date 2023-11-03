@@ -4,4 +4,6 @@ date: 2023-11-03 23:52:42
 tags:
 - XV6
 - OS
+categories:
+- MIT 6.S081
 ---
