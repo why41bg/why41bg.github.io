@@ -126,3 +126,79 @@ struct usyscall {
    ```
 
 该实验最后还提出了一个问题，**Which other xv6 system call(s) could be made faster using this shared page? ** 答案是：fork 系统调用。只需要在 `usyscall` 结构体中加入父进程的 `parent` 结构体，即可在 fork 系统调用复制父进程内存空间时，无需切换到内核即可找到父进程实际的物理内存地址，从而完成父进程内存空间的复制。
+
+
+
+# Print a page table ([easy](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+> 此实验要求打印一个进程的页表，目的在于帮助我们理解XV6中三级页表的结构。
+
+任务要求如下：在 `kernel/vm.c` 中定义一个  `vmprint` 函数，该函数接收一个 `pagetable_t`  参数，然后格式化输出该页表的内容。
+
+有一点提示很关键：**The function `freewalk` may be inspirational.** `kernel/vm.c` 中的 `freewalk` 函数通过递归的方式对进程页表进行了处理。因此，我们可以参考这个函数实现来 `vmprint`。
+
+具体的流程如下：
+
+1. 在 `kernel/vm.c` 中实现  `vmprint` 函数。
+   ```c
+   static char* prefix[3] = {"..", ".. ..", ".. .. .."};
+   // ...
+   
+   // Cycle through the contents of a page table
+   // Reference freewalk() function
+   void
+   vmprint(pagetable_t pgtbl)
+   {
+     printf("page table %p\n", pgtbl);
+     // Entry recursion to print pgtbl
+     vmprint_re(pgtbl, 0);
+   }
+   
+   void
+   vmprint_re(pagetable_t pgtbl, int layer){
+     // End condition
+     if(layer > 2){
+       return;
+     }
+   
+     // There are 2^9 = 512 PTEs in a page table.
+     for(int i = 0; i < 512; i++){
+       pte_t pte = pgtbl[i];
+       if((pte & PTE_V)){
+         uint64 pa = PTE2PA(pte);
+         printf("%s%d: pte %p pa %p\n", prefix[layer], i, pte, pa);
+         vmprint_re((pagetable_t)pa, layer+1);
+       }
+     }
+   }
+   ```
+
+   
+
+2. 在 `kernel/defs.h` 中声明  `vmprint` 函数。
+   ```c
+   // vm.c
+   // ...
+   int             copyinstr(pagetable_t, char *, uint64, uint64);
+   void            vmprint(pagetable_t);
+   void            vmprint_re(pagetable_t, int);
+   ```
+
+   
+
+3. 在 `kernel/exec.c` 中的 `exec` 函数结束前，调用 `vmprint` 函数打印进程的页表。
+   ```c
+   int
+   exec(char *path, char **argv)
+   {
+       // ...
+       
+       // Print the page table before the end of the exec
+     	vmprint(p->pagetable);
+     	return argc; // this ends up in a0, the first argument to main(argc, argv)
+       
+       // ...
+   }
+   ```
+
+   
