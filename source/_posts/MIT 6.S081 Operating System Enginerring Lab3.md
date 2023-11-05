@@ -8,7 +8,6 @@ categories:
 - MIT 6.S081
 ---
 
-> 
 # Speed up system calls ([easy](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
 > Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. 
 >
@@ -125,7 +124,7 @@ struct usyscall {
    }
    ```
 
-该实验最后还提出了一个问题，**Which other xv6 system call(s) could be made faster using this shared page? ** 答案是：fork 系统调用。只需要在 `usyscall` 结构体中加入父进程的 `parent` 结构体，即可在 fork 系统调用复制父进程内存空间时，无需切换到内核即可找到父进程实际的物理内存地址，从而完成父进程内存空间的复制。
+该实验最后还提出了一个问题，**Which other xv6 system call(s) could be made faster using this shared page?** 答案是：fork 系统调用。只需要在 `usyscall` 结构体中加入父进程的 `parent` 结构体，即可在 fork 系统调用复制父进程内存空间时，无需切换到内核即可找到父进程实际的物理内存地址，从而完成父进程内存空间的复制。
 
 
 
