@@ -8,7 +8,12 @@ categories:
 - MIT 6.S081
 ---
 
+> 很喜欢 Frans 教授的开场白：当我还是个学生并第一次听到学到这个词（pagetable）时，我认为它还是很直观简单的。这能有多难呢？无非就是个表单，将虚拟地址和物理地址映射起来，实际可能稍微复杂一点，但是应该不会太难。可是当我开始通过代码管理虚拟内存，我才知道虚拟内存比较棘手，比较有趣，功能也很强大。
+>
+> 这部分实验也证明了 pagetable 确实如此。
+
 # Speed up system calls ([easy](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
 > Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. 
 >
 > 本实验就是通过页表在用户空间和内核间共享只读区域的数据，这样就能在无需切换内核的情况加速系统调用，快速获得用户进程的PID。
@@ -200,4 +205,107 @@ struct usyscall {
    }
    ```
 
-   
+
+
+
+## Detecting which pages have been accessed ([hard](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+>Some garbage collectors (a form of automatic memory management) can benefit from information about which pages have been accessed (read or write). In this part of the lab, you will add a new feature to xv6 that detects and reports this information to userspace by inspecting the access bits in the RISC-V page table. The RISC-V hardware page walker marks these bits in the PTE whenever it resolves a TLB miss.
+>
+>这个实验看似很难，其实还好。需要实现一个内核程序（系统调用），扫描页表中哪些页表项的标志位 PTE_A 被标记为了1。
+
+在测试程序的代码中，就为我们初始化了一个页表，并将其中某些PTE的标志位 PTE_A 标记为了1。测试例程代码如下：
+
+```c
+void
+pgaccess_test()
+{
+  char *buf;
+  unsigned int abits;
+  printf("pgaccess_test starting\n");
+  testname = "pgaccess_test";
+  buf = malloc(32 * PGSIZE);
+  if (pgaccess(buf, 32, &abits) < 0)
+    err("pgaccess failed");
+  buf[PGSIZE * 1] += 1;
+  buf[PGSIZE * 2] += 1;
+  buf[PGSIZE * 30] += 1;
+  if (pgaccess(buf, 32, &abits) < 0)
+    err("pgaccess failed");
+  if (abits != ((1 << 1) | (1 << 2) | (1 << 30)))
+    err("incorrect access bits set");
+  free(buf);
+  printf("pgaccess_test: OK\n");
+}
+```
+
+那么 PTE_A 在 PTE 的哪个位置呢？在 PTE 从右到左第 7 个（index 为 6）比特位，提示中也说明了需要在 `kernel/riscv.h` 中设置宏定义：
+
+```c
+// ...
+
+#define PTE_U (1L << 4) // 1 -> user can access
+#define PTE_A (1L << 6) // 1 -> page has been accessed
+```
+
+如何找到虚拟地址对应的最后一级 PTE 呢？关键就是 `walk` 函数，该函数可以根据虚拟地址找到对应的 PTE。因此，整个流程就应该为：
+
+1. 解析用户程序参数，获得初始虚拟地址，扫描页表的上限，一个用户空间的缓存区（store the results into a bitmask）。
+2. 从初始地址开始检测，通过 `walk` 函数获得其对应 PTE。如果 PTE_A 为1，则将内核缓冲区中的 bitmask 对应位置设置为1，然后清空 PTE中的 PTE_A。
+3. 循环第2步至上限。
+4. 利用 `copyout` 函数将内核空间的缓冲区复制到用户空间。
+
+因此，`sys_pgaccess` 函数的完整实现为：
+
+```c
+#ifdef LAB_PGTBL
+int
+sys_pgaccess(void)
+{
+  // lab pgtbl: your code here.
+  uint64 va;  // The starting virtual address of the first user page to check.
+  int pgnum;  // The number of pages to check
+  uint64 bitmask;  // Use one bit per page
+  if(argaddr(0, &va) < 0){
+    return -1;
+  }
+  if(argint(1, &pgnum) < 0){
+    return -1;
+  }
+  if(argaddr(2, &bitmask) < 0){
+    return -1;
+  }
+
+  if(pgnum > 64){
+    return -1;
+  }
+
+  struct proc *p = myproc();
+  uint64 kbuf = 0; // Kernel buffer
+  pte_t *pte;
+
+  for(int i = 0; i < pgnum; i++){
+    if(va > MAXVA)
+      return -1;
+
+    pte = walk(p->pagetable, va, 0);
+    if(pte == 0)
+      return -1;
+
+    if(*pte & PTE_A){
+      kbuf |= (1 << i);  // Set the page bit in kernel buffer
+      *pte &= (~PTE_A);
+    }
+
+    va += PGSIZE;  // To the next page
+  }
+
+  if(copyout(p->pagetable, bitmask, (char*)&kbuf, sizeof(kbuf)) < 0)
+    return -1;
+
+  return 0;
+}
+#endif
+```
+
+最后还有一个很关键的点，但提示中没有说：**在 `kernel/defs.h` 中声明一下 `walk` 函数**，我也不知道为什么没有声明。。🥴🥴
