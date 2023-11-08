@@ -12,13 +12,21 @@ categories:
 >
 > 这部分实验也证明了 pagetable 确实如此。
 
+# 用户进程的地址空间
+
+A process's user address space, with its initial stack.
+
+![用户进程的地址空间](/images/用户进程的地址空间.png)
+
+这是XV6中关于用户进程的地址空间定义，在下面的实验的会用到。
+
 # Speed up system calls ([easy](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
 
 > Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. 
 >
 > 本实验就是通过页表在用户空间和内核间共享只读区域的数据，这样就能在无需切换内核的情况加速系统调用，快速获得用户进程的PID。
 
-每个进程创建时，都会创建一个属于它自己的虚拟地址空间（页表），该地址空间的结构图在教材中有说明，主要有三个部分：TRAMPOLINE、TRAPFRAME、USYSCALL。而 `USYSCALL` 就是映射的与内核共享的**只读**区域。用户进程的虚拟地址空间布局在 `kernel/memlayout.h` 文件中，这里面同时还定义了一个 `usyscall` 结构体用来存储用户进程的PID。相关定义如下：
+每个进程创建时，都会创建一个属于它自己的虚拟地址空间（页表），该地址空间的结构图在上面也给出来了，主要有三个部分：TRAMPOLINE、TRAPFRAME、USYSCALL（图中未给出，应该位于 TRAPFRAME 前面）。而 USYSCALL 就是映射的与内核共享的**只读**区域。用户进程的虚拟地址空间布局在 `kernel/memlayout.h` 文件中，这里面同时还定义了一个 `usyscall` 结构体用来存储用户进程的 PID。相关定义如下：
 
 ```c
 // User memory layout.
