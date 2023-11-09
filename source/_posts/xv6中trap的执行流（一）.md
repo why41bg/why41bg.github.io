@@ -1,5 +1,5 @@
 ---
-title: xv6中Trap的执行流
+title: xv6中trap的执行流（一）
 date: 2023-11-09 13:48:36
 tags:
 - OS
@@ -91,7 +91,7 @@ tags:
 
 我们现在在这个地址 0x3ffffff000，也就是上面 page table 输出的最后一个 page，这是 trampoline page。我们现在正在 trampoline page 中执行程序，这个page 包含了内核的 trap 处理代码。ecall 并不会切换 page table，这是 ecall 指令的一个非常重要的特点。所以这意味着，trap 处理代码必须存在于每一个 user page table 中。因为 ecall 并不会切换 page table，我们需要在 user page table 中的某个地方来执行最初的内核代码。而这个 trampoline page，是由内核小心的映射到每一个 user page table 中，以使得当我们仍然在使用 user page table 时，内核在一个地方能够执行 trap 机制的最开始的一些指令。
 
-这里的控制是通过 STVEC（） 寄存器完成的，这是一个只能在 supervisor mode 下读写的特权寄存器。在从内核空间进入到用户空间之前，内核会设置好 STVEC 寄存器指向内核希望 trap 代码运行的位置。
+这里的控制是通过 STVEC（Supervisor Trap Vector Base Address Register） 寄存器完成的，这是一个只能在 supervisor mode 下读写的特权寄存器。在从内核空间进入到用户空间之前，内核会设置好 STVEC 寄存器指向内核希望 trap 代码运行的位置。
 
 ![STVEC寄存器中的值](/images/STVEC寄存器中的值.png)
 
@@ -105,7 +105,7 @@ tags:
 
 第一，ecall 将代码从 user mode 改到 supervisor mode。
 
-第二，ecall 将程序计数器的值保存在了 SEPC 寄存器。我们可以通过打印 SEPC 寄存器看到这里的效果
+第二，ecall 将程序计数器的值保存在了 SEPC（Supervisor Exception Program Counter） 寄存器，该寄存器在 trap 的过程中保存程序计数器的值。我们可以通过打印 SEPC 寄存器看到这里的效果
 ![SEPC寄存器中的值](/images/SEPC寄存器中的值.png)
 尽管其他的寄存器还是还是用户寄存器，但是此时的程序计数器明显已经不是用户代码的程序计数器，而是从 STVEC 寄存器拷贝过来的值。
 
