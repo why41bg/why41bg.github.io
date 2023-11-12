@@ -14,7 +14,7 @@ categories:
 
 > 对于这个实验内容，关键在于理解 RISC-V 汇编
 
-首先要运行下面的指令生成 `user/call.asm` 文件，需要重点关注其中的 g、f 和 main 三个函数。
+首先要运行下面的指令生成 `user/call.asm` 文件，需要重点关注其中的 g、f 和 main 三个函数，然后回答下面五个问题。
 
 ```bash
 make fs.img
