@@ -66,3 +66,57 @@ void main(void) {
 
 
 ## Backtrace ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+> For debugging it is often useful to have a backtrace: a list of the function calls on the stack above the point at which the error occurred.
+>
+> 简单来说，该实验就是将函数调用堆栈中的返回地址依次打印出来。
+
+每一个栈帧的结构图如下：
+
+![XV6中栈帧的简单示意图](/images/XV6中栈帧的简单示意图.png)
+
+栈帧从栈底（高地址处）开始的第一个8字节存储返回地址，第二个8字节存储上一个栈帧的栈底（fp）。
+
+关于RISC-V中的必要的寄存器说明如下图：
+
+![Regster-info](/images/Regster-info.png)
+
+其中 `s0` 存储堆栈帧指针，在实验说明中的 hints 中也指出了：“ The GCC compiler stores the frame pointer of the currently executing function in the register `s0` ”。整个实验流程大致分为如下几步：
+
+1. 在 `kernel/defs.h` 中添加 `backtrace` 函数的声明。
+
+2. 在 `kernel/ riscv.h` 中添加一个 `r_fp` 函数用于获取当前 `s0` 寄存器中的值，即当前堆栈的帧指针。`r_fp` 函数实现如下：
+   ```c
+   static inline uint64
+   r_fp()
+   {
+     uint64 x;
+     asm volatile("mv %0, s0" : "=r" (x) );
+     return x;
+   }
+   ```
+
+3. 在 `kernel/printf` 中定义 `backtrace` 函数的实现。函数实现如下：
+   ```c
+   void
+   backtrace(void)
+   {
+     printf("backtrace:\n");
+   
+     uint64 fp = r_fp();
+   
+     uint64 base = PGROUNDUP(fp);  // high address
+     uint64 top = PGROUNDDOWN(fp);  // low address
+   
+     while((fp < base) && (top < base)){
+       printf("%p\n", *((uint64*)(fp-8)));
+       fp = *((uint64*)(fp-16));
+     }
+   }
+   ```
+
+4. 在 `kernel/printf` 中的 `panic` 函数中调用 `backtrace` 函数。
+
+5. 由于该实验需用通过 `sys_sleep` 系统调用来调用 `backtrace` 函数，达到评测的目的。因此需要在 `kernel/sysproc.c` 中的 `sys_sleep` 函数中调用 `backtrace` 函数。
+
+最后通过在系统中执行 `bttest` 或者执行测试程序，前者能正确打印出 function calls list，后者能正确通过。
