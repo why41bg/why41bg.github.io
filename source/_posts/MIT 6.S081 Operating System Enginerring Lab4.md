@@ -120,3 +120,216 @@ void main(void) {
 5. 由于该实验需用通过 `sys_sleep` 系统调用来调用 `backtrace` 函数，达到评测的目的。因此需要在 `kernel/sysproc.c` 中的 `sys_sleep` 函数中调用 `backtrace` 函数。
 
 最后通过在系统中执行 `bttest` 或者执行测试程序，前者能正确打印出 function calls list，后者能正确通过。
+
+
+
+## Alarm ([hard](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+> 本实验将自己实现一种原始形式的用户级中断/故障处理程序，类似的方法将用于处理应用程序中的 page fault 。
+
+自己实现两个系统调用 `sigalarm` 和 `sigreturn`，这两个系统调用将在测试程序中被调用。下面按照从用户空间到内核空间最终到达内核程序的过程依次完成代码。
+
+1. 用户空间中定义这两个系统调用，定义在 `user/user.h` 文件中。
+   ```c
+   // system calls
+   // ...
+   int sigalarm(int ticks, void (*handler)());  // Alarm
+   int sigreturn(void);  // Alarm
+   ```
+
+2. `user/user.pl` 文件中定义入口。
+
+   ```perl
+   entry("sigalarm");
+   entry("sigreturn");
+   ```
+
+3. 接下来进入内核空间，通过内核空间中的 `syscall` 函数找到对应的内核程序，在这之前，先定义内核程序号。
+   ```c
+   #define SYS_sigalarm  22
+   #define SYS_sigreturn 23
+   ```
+
+   ```c
+   extern uint64 sys_sigalarm(void);
+   extern uint64 sys_sigreturn(void);
+   
+   [SYS_sigalarm]   sys_sigalarm,
+   [SYS_sigreturn]  sys_sigreturn,
+   ```
+
+4. 这里需要在 `kernel/sysproc.c` 中完成两个内核程序，先来看第一个 `sys_sigalarm`。接收两个参数，第一个是回调函数执行周期，以tick为单位（tick是时钟芯片发出时钟中断的周期），第一个参数是回调函数的地址。也就是说，当一个用户进程每经过 n 次时钟中断后，便触发一个中断处理函数。这里需要注意一点，**在多任务处理环境下，当操作系统需要切换执行不同的线程或进程时，会保存当前线程或进程的寄存器状态到 trapframe 中，并将其存储到相应的数据结构中（如线程控制块或进程控制块）。这样，在切换到下一个线程或进程时，可以从其对应的数据结构中加载 trapframe 中保存的寄存器状态，以恢复到该线程或进程的执行状态。**因此，当首次进入中断处理函数时，我们需要先将当前寄存器的值保存到 trapframe 中的对应位置，再保存到 PCB 中。
+   PCB 中需要额外保存的信息就有：触发中断处理函数的周期，当前时钟走过的周期数，是否已执行过中断处理函数（仅第一次执行时需要保存寄存器的值到 PCB 中），中断处理函数的地址，保存的寄存器信息。
+
+   在 `kernel/proc.h` 中的 `proc` 结构体中额外添加如下信息：
+   ```c
+   struct proc {
+       // ...
+       int ticks;                   // Alarm ticks
+       int psdticks;                // Passed alarm ticks
+       uint64 handler;              // Alarm handler pointer
+       int in_handler;              // is in handler?
+   
+       uint64 epc;           // saved user program counter
+       uint64 ra;
+       uint64 sp;
+       uint64 gp;
+       uint64 tp;
+       uint64 t0;
+       uint64 t1;
+       uint64 t2;
+       uint64 s0;
+       uint64 s1;
+       uint64 a0;
+       uint64 a1;
+       uint64 a2;
+       uint64 a3;
+       uint64 a4;
+       uint64 a5;
+       uint64 a6;
+       uint64 a7;
+       uint64 s2;
+       uint64 s3;
+       uint64 s4;
+       uint64 s5;
+       uint64 s6;
+       uint64 s7;
+       uint64 s8;
+       uint64 s9;
+       uint64 s10;
+       uint64 s11;
+       uint64 t3;
+       uint64 t4;
+       uint64 t5;
+       uint64 t6;
+   }
+   ```
+
+   在 `kernel/sysproc.c` 文件中添加第一个系统调用：
+   ```c
+   // alarm
+   int 
+   sys_sigalarm(void)
+   {
+     int ticks;
+     uint64 handler;
+   
+     if(argint(0, &ticks) < 0)
+       return -1;
+     if(argaddr(1, &handler) < 0)
+       return -1;
+   
+     struct proc *p = myproc();
+     p->ticks = ticks;
+     p->handler = handler;
+     p->psdticks = 0;
+     p->in_handler = 0;
+   
+     return 0;
+   }
+   ```
+
+5. 修改 `kernel/trapc.c` 中的 `usertrap` 函数，该函数中 `if(which_dev == 2)` 就是判断中断是否来自时钟中断信号，在确定进入中断处理函数前，要保存用户进程中的寄存器信息到 trapframe 中，具体代码如下：
+   ```c
+   // give up the CPU if this is a timer interrupt.
+     if(which_dev == 2){
+       p->psdticks += 1;
+       if(p->ticks && (p->psdticks == p->ticks)){
+         p->psdticks = 0;  // reload ticks counter
+         if(p->in_handler == 0){
+           p->in_handler = 1;  // in handler
+   
+           // save regster
+           p->ra = p->trapframe->ra;
+           p->sp = p->trapframe->sp;
+           p->gp = p->trapframe->gp;
+           p->tp = p->trapframe->tp;
+           p->t0 = p->trapframe->t0;
+           p->t1 = p->trapframe->t1;
+           p->t2 = p->trapframe->t2;
+           p->s0 = p->trapframe->s0;
+           p->s1 = p->trapframe->s1;
+           p->a0 = p->trapframe->a0;
+           p->a1 = p->trapframe->a1;
+           p->a2 = p->trapframe->a2;
+           p->a3 = p->trapframe->a3;
+           p->a4 = p->trapframe->a4;
+           p->a5 = p->trapframe->a5;
+           p->a6 = p->trapframe->a6;
+           p->a7 = p->trapframe->a7;
+           p->s2 = p->trapframe->s2;
+           p->s3 = p->trapframe->s3;
+           p->s4 = p->trapframe->s4;
+           p->s5 = p->trapframe->s5;
+           p->s6 = p->trapframe->s6;
+           p->s7 = p->trapframe->s7;
+           p->s8 = p->trapframe->s8;
+           p->s9 = p->trapframe->s9;
+           p->s10 = p->trapframe->s10;
+           p->s11 = p->trapframe->s11;
+           p->t3 = p->trapframe->t3;
+           p->t4 = p->trapframe->t4;
+           p->t5 = p->trapframe->t5;
+           p->t6 = p->trapframe->t6;
+           p->epc = p->trapframe->epc;
+   
+           // change PC
+           p->trapframe->epc = p->handler;
+         } 
+   ```
+
+6. 最后完成 `sys_sigreturn` 函数，将 PCB 中的寄存器信息恢复到 trapframe 中。
+   ```c
+   int 
+   sys_sigreturn(void)
+   {
+     struct proc *p = myproc();
+   
+     if(p->in_handler != 0){
+       // resumption regster
+       p->trapframe->ra = p->ra;
+       p->trapframe->sp = p->sp;
+       p->trapframe->gp = p->gp;
+       p->trapframe->tp = p->tp;
+       p->trapframe->t0 = p->t0;
+       p->trapframe->t1 = p->t1;
+       p->trapframe->t2 = p->t2;
+       p->trapframe->s0 = p->s0;
+       p->trapframe->s1 = p->s1;
+       p->trapframe->a0 = p->a0;
+       p->trapframe->a1 = p->a1;
+       p->trapframe->a2 = p->a2;
+       p->trapframe->a3 = p->a3;
+       p->trapframe->a4 = p->a4;
+       p->trapframe->a5 = p->a5;
+       p->trapframe->a6 = p->a6;
+       p->trapframe->a7 = p->a7;
+       p->trapframe->s2 = p->s2;
+       p->trapframe->s3 = p->s3;
+       p->trapframe->s4 = p->s4;
+       p->trapframe->s5 = p->s5;
+       p->trapframe->s6 = p->s6;
+       p->trapframe->s7 = p->s7;
+       p->trapframe->s8 = p->s8;
+       p->trapframe->s9 = p->s9;
+       p->trapframe->s10 = p->s10;
+       p->trapframe->s11 = p->s11;
+       p->trapframe->t3 = p->t3;
+       p->trapframe->t4 = p->t4;
+       p->trapframe->t5 = p->t5;
+       p->trapframe->t6 = p->t6;
+   
+       // resumption PC
+       p->trapframe->epc = p->epc;
+   
+       // exit handler
+       p->in_handler = 0;
+     }
+     
+     return 0;
+   }
+   ```
+
+记得把测试程序写到 Makefile 中。
+
+当然，上述保存寄存器信息也可以通过**新建一个 trapframe 对象**，存储到 PCB 中来实现。
