@@ -25,3 +25,7 @@
       link: https://rutor-org.games/
       avatar: https://rutor-org.games/favicon.ico
       descr: 各种当下热门游戏资源，不过要注意安全性
+    - name: sklearn文档
+      link: https://scikit-learn.org/stable/modules/classes.html
+      avatar: https://scikit-learn.org/stable/_static/favicon.ico
+      descr: sklearn API document
