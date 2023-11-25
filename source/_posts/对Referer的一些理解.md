@@ -8,7 +8,7 @@ tags: Referer
 
 # 什么是Referer？
 
-> 看见个有意思的，`Referer` 的正确英语拼法是 `referrer` 。由于早期 HTTP 规范的拼写错误，为了保持向后兼容就将错就错了。~~真幽默hhh~~
+> 经常在网上看到两种写法，一个是 `Referer` ，另一个 `referrer` ，关于这两种写法背后有一个很有意思的历史。正确的写法应该是 `referer`。
 
 `Referer` 是 `HTTP` 请求 `header` 的一部分，它用来表示流量来源于哪里。
 
