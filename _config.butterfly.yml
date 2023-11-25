@@ -775,6 +775,7 @@ subtitle:
   # 如果關閉打字效果，subtitle 只會顯示 sub 的第一行文字
   sub:
     - Never put off till tomorrow what you can do today
+    - All problems in computer science can be solved by another level of indirection
 
 # Loading Animation (加載動畫)
 preloader:
