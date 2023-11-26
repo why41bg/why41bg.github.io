@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MIT 6.S081 Operating System Enginerring Lab5 | Blog</title><meta name="author" content="wyy"><meta name="copyright" content="wyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="什么是 Copy on write？当 shell 执行一个用户程序时，shell 在背后做了一系列的操作。首先使用 fork 系统调用拷贝一份 shell 的内存空间，然后使用 exec 系统调用，将需要执行的用户进程的指令、数据等替换新拷贝的内存空间。在这个过程中，如果 fork 拷贝的父进程的内存空间很大（在 xv6 中，shell 的内存空间一般是4个 page），那么将花费大量时间，这部">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT 6.S081 Operating System Enginerring Lab5">
+<meta property="og:url" content="https://www.wyylib.top/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab5/">
+<meta property="og:site_name" content="Blog">
+<meta property="og:description" content="什么是 Copy on write？当 shell 执行一个用户程序时，shell 在背后做了一系列的操作。首先使用 fork 系统调用拷贝一份 shell 的内存空间，然后使用 exec 系统调用，将需要执行的用户进程的指令、数据等替换新拷贝的内存空间。在这个过程中，如果 fork 拷贝的父进程的内存空间很大（在 xv6 中，shell 的内存空间一般是4个 page），那么将花费大量时间，这部">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.wyylib.top/blog/img/qq.jpg">
+<meta property="article:published_time" content="2023-11-26T13:37:01.000Z">
+<meta property="article:modified_time" content="2023-11-26T16:07:10.764Z">
+<meta property="article:author" content="wyy">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="XV6">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.wyylib.top/blog/img/qq.jpg"><link rel="shortcut icon" href="/blog/img/favicon.png"><link rel="canonical" href="https://www.wyylib.top/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab5/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/blog/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MIT 6.S081 Operating System Enginerring Lab5',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2023-11-27 00:07:10'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.0.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/blog/img/qq.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/blog/" title="Blog"><span class="site-name">Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MIT 6.S081 Operating System Enginerring Lab5</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2023-11-26T13:37:01.000Z" title="发表于 2023-11-26 21:37:01">2023-11-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MIT 6.S081 Operating System Enginerring Lab5"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="什么是-Copy-on-write？"><a href="#什么是-Copy-on-write？" class="headerlink" title="什么是 Copy on write？"></a>什么是 Copy on write？</h1><p>当 shell 执行一个用户程序时，shell 在背后做了一系列的操作。首先使用 fork 系统调用拷贝一份 shell 的内存空间，然后使用 exec 系统调用，将需要执行的用户进程的指令、数据等替换新拷贝的内存空间。在这个过程中，如果 fork 拷贝的父进程的内存空间很大（在 xv6 中，shell 的内存空间一般是4个 page），那么将花费大量时间，这部分时间实际上来说就是被浪费了的。</p>
+<p>Copy on write 做的事情实际上就是在执行 fork 系统调用的时候不会拷贝父进程的内存空间，而是将父进程的物理内存地址映射到子进程的 page table 中，并将父进程与子进程的 page table 中的 PTE 的写标志位置为0，表明不能对这部分物理内存进行写操作。当父进程或子进程对这部分内存进行写操作时，则会触发一个 page fault。</p>
+<p>当处理这个 page fault 时，再为这个虚拟地址分配实际的物理内存，将原来物理内存中的内容拷贝过去，然后将这个新分配的物理内存映射到 page table 中，并修改响应的标志位。当完成这一切后，重新返回到用户空间执行引发 page fault 的指令，如果前面的步骤都完成了的话，这时候指令就应该可以正确地运行了。这就是 copy on write 的含义，仅仅在进行写操作时再分配实际的物理内存，这样就可以避免许多无用的拷贝操作。</p>
+<p>这里还有两个点需要注意：</p>
+<ol>
+<li>操作系统必须能够识别 copy on write 的场景，在 PTE 的标志位中，保留了两位 bit 位，我们就可以使用第七位来标记一个 copy on write 场景。如果不这样做的话，当程序尝试写一个没有写权限的内存时，这可能是一个禁止的操作，而不是一个 copy on write 场景。对于这种错误的情况，操作系统正确的做法就应该是禁止这种操作。</li>
+<li>当释放一个物理页的时候，需要格外小心，因为如果采用了 copy on write 机制，一个物理页就有可能不止被一个进程所引用（存在于一个进程的 page table 中）。因此，我们需要记录每个物理页的引用数，当释放一个物理页时，仅仅只是将该物理页的引用数减一，当引用数变为0的时候，说明当前没有进程在使用该物理页了，这时候才真正地去释放物理页。对于每个物理页的引用计数，可以用一个数组来保存，数组的大小为物理内存大小除以4096，也就是物理页的数量。</li>
+</ol>
+<h1 id="Implement-copy-on-write-hard"><a href="#Implement-copy-on-write-hard" class="headerlink" title="Implement copy-on write(hard)"></a>Implement copy-on write(<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html">hard</a>)</h1><blockquote>
+<p>Your task is to implement copy-on-write fork in the xv6 kernel. </p>
+</blockquote>
+<p>实验说明给出的 plan 已经很完善了，跟着 plan 的思路大致就能够完成这个。plan 的内容如下：</p>
+<ol>
+<li>Modify uvmcopy() to map the parent’s physical pages into the child, instead of allocating new pages. Clear <code>PTE_W</code> in the PTEs of both child and parent.</li>
+<li>Modify usertrap() to recognize page faults. When a page-fault occurs on a COW page, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the PTE with <code>PTE_W</code> set.</li>
+<li>Ensure that each physical page is freed when the last PTE reference to it goes away – but not before. A good way to do this is to keep, for each physical page, a “reference count” of the number of user page tables that refer to that page. Set a page’s reference count to one when <code>kalloc()</code> allocates it. Increment a page’s reference count when fork causes a child to share the page, and decrement a page’s count each time any process drops the page from its page table. <code>kfree()</code> should only place a page back on the free list if its reference count is zero. It’s OK to to keep these counts in a fixed-size array of integers. You’ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page’s physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by <code>kinit()</code> in kalloc.c.</li>
+<li>Modify copyout() to use the same scheme as page faults when it encounters a COW page.</li>
+</ol>
+<h2 id="具体代码实现"><a href="#具体代码实现" class="headerlink" title="具体代码实现"></a>具体代码实现</h2><ol>
+<li><p>修改 <code>vm.c</code> 中的 <code>uvmcopy</code> 函数，这个函数就是 fork 系统调用执行的函数，该函数将父进程的物理内存空间拷贝给子进程的物理内存空间，然后将拷贝的物理内存映射到子进程的 page table 中。现在需要修改这个函数，使之不为子进程分配物理内存空间，而是直接将父进程的物理内存空间映射到子进程的 page table 中，然后修改父进程与子进程的 page table 中的标志位，取消写操作权限，标记 copy on write 场景。需要注意的是，父进程的物理页需要将引用数执行加一操作，这个操作的函数在后面会实现，这里先直接使用。具体的代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span></span><br><span class="line"><span class="title function_">uvmcopy</span><span class="params">(<span class="type">pagetable_t</span> old, <span class="type">pagetable_t</span> new, uint64 sz)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pte_t</span> *pte;</span><br><span class="line">    uint64 pa, i;</span><br><span class="line">    uint flags;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; sz; i += PGSIZE)&#123;</span><br><span class="line">      <span class="keyword">if</span>((pte = walk(old, i, <span class="number">0</span>)) == <span class="number">0</span>)  <span class="comment">// parent&#x27;s PTE</span></span><br><span class="line">        panic(<span class="string">&quot;uvmcopy: pte should exist&quot;</span>);</span><br><span class="line">      <span class="keyword">if</span>((*pte &amp; PTE_V) == <span class="number">0</span>)</span><br><span class="line">        panic(<span class="string">&quot;uvmcopy: page not present&quot;</span>);</span><br><span class="line">      pa = PTE2PA(*pte); </span><br><span class="line"></span><br><span class="line">      <span class="comment">// ref of pa +1</span></span><br><span class="line">      refcnt_add(pa);</span><br><span class="line"></span><br><span class="line">      *pte &amp;= (~PTE_W);</span><br><span class="line">      *pte |= PTE_COW;</span><br><span class="line">      flags = PTE_FLAGS(*pte);</span><br><span class="line">      <span class="keyword">if</span>(mappages(new, i, PGSIZE, (uint64)pa, flags) != <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    err:</span><br><span class="line">      uvmunmap(new, <span class="number">0</span>, i/PGSIZE, <span class="number">1</span>);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改 <code>tarp.c</code> 中的 <code>usertrap</code> 函数，当出现 page fault 时，执行 copy on write 场景的识别与相应的处理，场景识别的代码放到了函数中。具体的代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">usertrap</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">    </span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span>((which_dev = devintr()) != <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="comment">// ok</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span>(r_scause() == <span class="number">15</span>)&#123;</span><br><span class="line">    <span class="comment">// page fault</span></span><br><span class="line">    uint64 va = r_stval();</span><br><span class="line">    <span class="comment">// copy on write</span></span><br><span class="line">    <span class="keyword">if</span>(cow(p-&gt;pagetable, va) &lt; <span class="number">0</span>)</span><br><span class="line">      p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;usertrap(): unexpected scause %p pid=%d\n&quot;</span>, r_scause(), p-&gt;pid);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;            sepc=%p stval=%p\n&quot;</span>, r_sepc(), r_stval());</span><br><span class="line">    p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接下来完成 copy on write 场景处理的函数 <code>cow</code>，该函数在 <code>vm.c</code> 中，函数实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span></span><br><span class="line"><span class="title function_">cow</span><span class="params">(<span class="type">pagetable_t</span> pgtbl, uint64 va)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">pte_t</span> *pte;</span><br><span class="line">  uint64 pa, ka;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>((pte = walk(pgtbl, va, <span class="number">0</span>)) == <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">&quot;uvmcopy: pte should exist&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>((*pte &amp; PTE_V) &amp;&amp; (*pte &amp; PTE_U) &amp;&amp; (*pte &amp; PTE_COW) == <span class="number">0</span>)  <span class="comment">// is copy on write?</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  pa = PTE2PA(*pte);</span><br><span class="line">  <span class="keyword">if</span>((ka = (uint64)kalloc()) == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  memmove((<span class="type">char</span>*)ka, (<span class="type">char</span>*)pa, PGSIZE);</span><br><span class="line">  uint64 flags = PTE_FLAGS(*pte);</span><br><span class="line">  *pte = PA2PTE(ka) | flags | PTE_W;</span><br><span class="line">  *pte &amp;= (~PTE_COW);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// update count</span></span><br><span class="line">  kfree((<span class="type">void</span> *)pa);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在这个函数的最后，将引起 page fault 的进程执行对应的物理地址的引用数减一，即返回前的 <code>kfree</code> 函数。我们需要修改这个函数，仅仅执行将物理页的引用数减一的操作，当引用数为0时才真正释放内存。这个函数在 <code>kalloc.c</code> 文件中，在这个文件的最开始，还需要定义一个数组，用来记录每个物理页的引用数，该数组定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> refcnt[PHYSTOP &gt;&gt; <span class="number">12</span>];</span><br></pre></td></tr></table></figure>
+
+<p>接下来修改 <code>kfree</code> 函数，<code>kfree</code> 函数完整实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">kfree</span><span class="params">(<span class="type">void</span> *pa)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">run</span> *<span class="title">r</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(((uint64)pa % PGSIZE) != <span class="number">0</span> || (<span class="type">char</span>*)pa &lt; end || (uint64)pa &gt;= PHYSTOP)</span><br><span class="line">    panic(<span class="string">&quot;kfree&quot;</span>);</span><br><span class="line"></span><br><span class="line">  acquire(&amp;kmem.lock);</span><br><span class="line">  <span class="type">int</span> index = ((uint64)pa) &gt;&gt; <span class="number">12</span>;</span><br><span class="line">  <span class="keyword">if</span> (refcnt[index] &gt;= <span class="number">1</span>) &#123;</span><br><span class="line">    refcnt[index] -= <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  release(&amp;kmem.lock);</span><br><span class="line">  <span class="keyword">if</span> (refcnt[index] &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Fill with junk to catch dangling refs.</span></span><br><span class="line">  <span class="built_in">memset</span>(pa, <span class="number">1</span>, PGSIZE);</span><br><span class="line"></span><br><span class="line">  r = (<span class="keyword">struct</span> run*)pa;</span><br><span class="line"></span><br><span class="line">  acquire(&amp;kmem.lock);</span><br><span class="line">  r-&gt;next = kmem.freelist;</span><br><span class="line">  kmem.freelist = r;</span><br><span class="line">  release(&amp;kmem.lock);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>还需要修改 <code>kalloc</code> 函数，在分配物理页的时候，初始化该物理页的引用数为1，<code>kalloc</code> 函数实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *</span><br><span class="line"><span class="title function_">kalloc</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">run</span> *<span class="title">r</span>;</span></span><br><span class="line"></span><br><span class="line">  acquire(&amp;kmem.lock);</span><br><span class="line">  r = kmem.freelist;</span><br><span class="line">  <span class="keyword">if</span>(r)&#123;</span><br><span class="line">    kmem.freelist = r-&gt;next;</span><br><span class="line">    refcnt[((uint64)r) &gt;&gt; <span class="number">12</span>] = <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  release(&amp;kmem.lock);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(r)</span><br><span class="line">    <span class="built_in">memset</span>((<span class="type">char</span>*)r, <span class="number">5</span>, PGSIZE); <span class="comment">// fill with junk</span></span><br><span class="line">  <span class="keyword">return</span> (<span class="type">void</span>*)r;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在该文件中，还需要实现在第一步中使用的到的 <code>refcnt_add</code> 函数，该函数实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">refcnt_add</span><span class="params">(uint64 pa)</span></span><br><span class="line">&#123;</span><br><span class="line">  acquire(&amp;kmem.lock);</span><br><span class="line">  refcnt[((uint64)pa) &gt;&gt; <span class="number">12</span>] += <span class="number">1</span>;</span><br><span class="line">  release(&amp;kmem.lock);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>根据 plan 的最后一条，还需要修改 <code>vm.c</code> 中的 <code>copyout</code> 函数，使之一样能识别 copy on write 场景，并执行相应的 copy on write 逻辑，<code>copyout</code> 函数实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span></span><br><span class="line"><span class="title function_">copyout</span><span class="params">(<span class="type">pagetable_t</span> pagetable, uint64 dstva, <span class="type">char</span> *src, uint64 len)</span></span><br><span class="line">&#123;</span><br><span class="line">  uint64 n, va0, pa0;</span><br><span class="line">  <span class="type">pte_t</span> *pte;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span>(len &gt; <span class="number">0</span>)&#123;</span><br><span class="line">    va0 = PGROUNDDOWN(dstva);</span><br><span class="line">    pa0 = walkaddr(pagetable, va0);</span><br><span class="line">    <span class="keyword">if</span>(pa0 == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// is copy on write?</span></span><br><span class="line">    <span class="keyword">if</span>((pte = walk(pagetable, va0, <span class="number">0</span>)) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">if</span>((*pte &amp; PTE_W) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">if</span>(cow(pagetable, va0) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    pa0 = PTE2PA(*pte);</span><br><span class="line"></span><br><span class="line">    n = PGSIZE - (dstva - va0);</span><br><span class="line">    <span class="keyword">if</span>(n &gt; len)</span><br><span class="line">      n = len;</span><br><span class="line">    memmove((<span class="type">void</span> *)(pa0 + (dstva - va0)), src, n);</span><br><span class="line"></span><br><span class="line">    len -= n;</span><br><span class="line">    src += n;</span><br><span class="line">    dstva = va0 + PGSIZE;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="另外"><a href="#另外" class="headerlink" title="另外"></a>另外</h2><p>代码中使用了 <code>acquire(&amp;kmem.lock)</code> 和 <code>release(&amp;kmem.lock)</code> 这样的语句，这是获得锁和释放锁有关的操作。关于锁会在下一节课进行详细的讲解，这里如果不理解的话<del>（虽然我觉得大概率也不太可能）</del>，跟着用就可以了。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://www.wyylib.top/blog">wyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.wyylib.top/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab5/">https://www.wyylib.top/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab5/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.wyylib.top/blog" target="_blank">Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/blog/tags/OS/">OS</a><a class="post-meta__tags" href="/blog/tags/XV6/">XV6</a></div><div class="post_share"><div class="social-share" data-image="/blog/img/qq.jpg" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/blog/images/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/blog/images/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/blog/images/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/blog/images/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%BA%8C%EF%BC%89/" title="xv6中trap的执行流（二）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">xv6中trap的执行流（二）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab1/" title="MIT 6.S081 Operating System Enginerring Lab1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-10</div><div class="title">MIT 6.S081 Operating System Enginerring Lab1</div></div></a></div><div><a href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab2/" title="MIT 6.S081 Operating System Enginerring Lab2"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-22</div><div class="title">MIT 6.S081 Operating System Enginerring Lab2</div></div></a></div><div><a href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab3/" title="MIT 6.S081 Operating System Enginerring Lab3"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-03</div><div class="title">MIT 6.S081 Operating System Enginerring Lab3</div></div></a></div><div><a href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab4/" title="MIT 6.S081 Operating System Enginerring Lab4"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-07</div><div class="title">MIT 6.S081 Operating System Enginerring Lab4</div></div></a></div><div><a href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%B8%80%EF%BC%89/" title="xv6中trap的执行流（一）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-09</div><div class="title">xv6中trap的执行流（一）</div></div></a></div><div><a href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%BA%8C%EF%BC%89/" title="xv6中trap的执行流（二）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-09</div><div class="title">xv6中trap的执行流（二）</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/blog/img/qq.jpg" onerror="this.onerror=null;this.src='/blog/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">wyy</div><div class="author-info__description">00后老嵩鼠一只，吱吱吱~~</div></div><div class="card-info-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wy66613"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">暂无公告</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Copy-on-write%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">什么是 Copy on write？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Implement-copy-on-write-hard"><span class="toc-number">2.</span> <span class="toc-text">Implement copy-on write(hard)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B7%E4%BD%93%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.1.</span> <span class="toc-text">具体代码实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%A6%E5%A4%96"><span class="toc-number">2.2.</span> <span class="toc-text">另外</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab5/" title="MIT 6.S081 Operating System Enginerring Lab5">MIT 6.S081 Operating System Enginerring Lab5</a><time datetime="2023-11-26T13:37:01.000Z" title="发表于 2023-11-26 21:37:01">2023-11-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%BA%8C%EF%BC%89/" title="xv6中trap的执行流（二）">xv6中trap的执行流（二）</a><time datetime="2023-11-09T13:25:29.000Z" title="发表于 2023-11-09 21:25:29">2023-11-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%B8%80%EF%BC%89/" title="xv6中trap的执行流（一）">xv6中trap的执行流（一）</a><time datetime="2023-11-09T05:48:36.000Z" title="发表于 2023-11-09 13:48:36">2023-11-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/%E4%BB%A5x86%E5%88%86%E6%9E%90%E6%A0%88%E5%B8%A7%E7%9A%84%E5%88%87%E6%8D%A2%E8%BF%87%E7%A8%8B/" title="以x86分析栈帧的切换过程">以x86分析栈帧的切换过程</a><time datetime="2023-11-08T13:13:34.000Z" title="发表于 2023-11-08 21:13:34">2023-11-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab4/" title="MIT 6.S081 Operating System Enginerring Lab4">MIT 6.S081 Operating System Enginerring Lab4</a><time datetime="2023-11-07T09:09:23.000Z" title="发表于 2023-11-07 17:09:23">2023-11-07</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 By wyy</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Good luck && Have fun</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/blog/js/utils.js"></script><script src="/blog/js/main.js"></script><script src="/blog/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法制,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script>(() => {
+  window.$crisp = [];
+  window.CRISP_WEBSITE_ID = "afb2763e-7a09-426c-bb94-cfd821d55233";
+  (function () {
+    d = document;
+    s = d.createElement("script");
+    s.src = "https://client.crisp.chat/l.js";
+    s.async = 1;
+    d.getElementsByTagName("head")[0].appendChild(s);
+  })();
+  $crisp.push(["safe", true])
+
+  const isChatBtn = true
+  const isChatHideShow = false
+
+  if (isChatBtn) {
+    const open = () => {
+      $crisp.push(["do", "chat:show"])
+      $crisp.push(["do", "chat:open"])
+    }
+
+    const close = () => {
+      $crisp.push(["do", "chat:hide"])
+    }
+
+    close()
+    $crisp.push(["on", "chat:closed", function() {
+      close()
+    }])
+
+    window.chatBtnFn = () => {
+      $crisp.is("chat:visible") ? close() : open()
+    }
+  } else if (isChatHideShow) {
+    window.chatBtn = {
+      hide: () => {
+        $crisp.push(["do", "chat:hide"])
+      },
+      show: () => {
+        $crisp.push(["do", "chat:show"])
+      }
+    }
+  }
+})()</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
