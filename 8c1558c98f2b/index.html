@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python中的进程与线程 | Blog</title><meta name="author" content="wyy"><meta name="copyright" content="wyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="进程与线程不是开得越多越好。其实在大多数情况下，我们并不需要使用到多进程与多线程。只有理解了进程和线程的本质，我们才能更好地去运用它们。  进程与线程的区别进程是资源分配的最小单位，线程是CPU调度的最小单位。 对于没有学习过操作系统的人来说，这句话可能有点抽象。 掌握合适的抽象😋是学习计算机的关键。这里引用一个关于进程和线程的绝妙比喻来深入浅出地解释一下：  做个简单的比喻：进程&#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python中的进程与线程">
+<meta property="og:url" content="https://www.wyylib.top/blog/8c1558c98f2b/">
+<meta property="og:site_name" content="Blog">
+<meta property="og:description" content="进程与线程不是开得越多越好。其实在大多数情况下，我们并不需要使用到多进程与多线程。只有理解了进程和线程的本质，我们才能更好地去运用它们。  进程与线程的区别进程是资源分配的最小单位，线程是CPU调度的最小单位。 对于没有学习过操作系统的人来说，这句话可能有点抽象。 掌握合适的抽象😋是学习计算机的关键。这里引用一个关于进程和线程的绝妙比喻来深入浅出地解释一下：  做个简单的比喻：进程&#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.wyylib.top/blog/img/qq.jpg">
+<meta property="article:published_time" content="2023-10-01T05:02:06.000Z">
+<meta property="article:modified_time" content="2023-11-26T15:47:43.290Z">
+<meta property="article:author" content="wyy">
+<meta property="article:tag" content="Python多线程">
+<meta property="article:tag" content="Python多进程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.wyylib.top/blog/img/qq.jpg"><link rel="shortcut icon" href="/blog/img/favicon.png"><link rel="canonical" href="https://www.wyylib.top/blog/8c1558c98f2b/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/blog/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python中的进程与线程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2023-11-26 23:47:43'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.0.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/blog/img/qq.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/blog/" title="Blog"><span class="site-name">Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Python中的进程与线程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2023-10-01T05:02:06.000Z" title="发表于 2023-10-01 13:02:06">2023-10-01</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Python中的进程与线程"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>进程与线程不是开得越多越好。其实在大多数情况下，我们并不需要使用到多进程与多线程。只有理解了进程和线程的本质，我们才能更好地去运用它们。</p>
+</blockquote>
+<h1 id="进程与线程的区别"><a href="#进程与线程的区别" class="headerlink" title="进程与线程的区别"></a>进程与线程的区别</h1><p><strong>进程是资源分配的最小单位，线程是CPU调度的最小单位。</strong></p>
+<p>对于没有学习过操作系统的人来说，这句话可能有点抽象。</p>
+<p><strong>掌握合适的抽象😋</strong>是学习计算机的关键。这里引用一个关于进程和线程的绝妙比喻来深入浅出地解释一下：</p>
+<ul>
+<li>做个简单的比喻：进程&#x3D;火车，线程&#x3D;车厢线程在进程下行进（单纯的车厢无法运行）</li>
+<li>一个进程可以包含多个线程（一辆火车可以有多个车厢）</li>
+<li>不同进程间数据很难共享（一辆火车上的乘客很难换到另外一辆火车，比如站点换乘）</li>
+<li>同一进程下不同线程间数据很易共享（A车厢换到B车厢很容易）</li>
+<li>进程要比线程消耗更多的计算机资源（采用多列火车相比多个车厢更耗资源）</li>
+<li>进程间不会相互影响，一个线程挂掉将导致整个进程挂掉（一列火车不会影响到另外一列火车，但是如果一列火车上中间的一节车厢着火了，将影响到所有车厢）</li>
+<li>进程可以拓展到多机，进程最多适合多核（不同火车可以开在多个轨道上，同一火车的车厢不能在行进的不同的轨道上）</li>
+<li>进程使用的内存地址可以上锁，即一个线程使用某些共享内存时，其他线程必须等它结束，才能使用这一块内存。（比如火车上的洗手间）－”互斥锁”</li>
+<li>进程使用的内存地址可以限定使用量（比如火车上的餐厅，最多只允许多少人进入，如果满了需要在门口等，等有人出来了才能进去）－“信号量”</li>
+</ul>
+<p>享受了进程和线程带来的便利，那就得付出相应的代价。<strong>进程与线程的创建与切换是需要消耗一定的资源的</strong>，在大多数编程语言中切换线程消耗的资源更少。但是坏消息是，在Python中的多线程是<strong>伪多线程</strong>。</p>
+<h1 id="GIL锁"><a href="#GIL锁" class="headerlink" title="GIL锁"></a>GIL锁</h1><p>GIL锁，全称为Global Interpreter Lock，也就是全局解释器锁。是为了解决多线程共享内存的数据安全而设计的。由于Python的运行依赖于Python解释器，GIL锁的存在就保证了解释器每次只能运行一个线程，这就是为什么说Python中的多线程是伪多线程🤔。</p>
+<h1 id="多进程与多线程的使用场景"><a href="#多进程与多线程的使用场景" class="headerlink" title="多进程与多线程的使用场景"></a>多进程与多线程的使用场景</h1><ul>
+<li>CPU密集型操作使用多进程。因为大多数时间花在CPU上，无需IO（简单地说就是数据已经在内存中，不需要读取磁盘、不需要网络通信），所以希望CPU的利用率越高越好，选择多进程是合适的</li>
+<li>IO密集型操作使用多线程。因为大多数时间花在IO交互的等待上，此时一个CPU和多个CPU是没有太大差别的，反而是线程切换比进程切换要轻量得多，这时候使用多线程是合适的。</li>
+</ul>
+<h1 id="同步互斥"><a href="#同步互斥" class="headerlink" title="同步互斥"></a>同步互斥</h1><p>进程之间（也是线程之间，下面就只描述进程）往往是异步的，各进程按各自独立的、不可预知的速度向前推进，异步性会导致执行结果的不可再现性。因此不同进程对于临界资源的访问需要加以控制，这就是进程间的同步互斥问题。</p>
+<p>经典的同步问题有：</p>
+<ol>
+<li>生产者-消费者问题</li>
+<li>读者-写者问题</li>
+<li>哲学家进餐问题</li>
+</ol>
+<h1 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h1><p>进程间是相互独立的，不存在共享内存空间。如果两个进程需要通信，就需要借助一些工具，最常见的就是队列了。</p>
+<p>队列常用来解决生产者-消费者问题，生产者进程在一端写入，消费者进程在一段读出。</p>
+<p>使用队列完成进程间通信示例代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 首先创建两个函数扮演生产者和消费者</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">producer</span>(<span class="params">queue</span>):</span><br><span class="line">    <span class="keyword">for</span> item <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">        queue.put(item)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;生产者将 <span class="subst">&#123;item&#125;</span> 放入队列&quot;</span>)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">consumer</span>(<span class="params">queue</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        item = queue.get()</span><br><span class="line">        <span class="keyword">if</span> item == <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;消费者将 <span class="subst">&#123;item&#125;</span> 读出队列&quot;</span>)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> __name__ = <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">from</span> multiprocessing <span class="keyword">import</span> Process, Queue</span><br><span class="line">    queue = Queue()  <span class="comment"># 创建队列对象</span></span><br><span class="line">    p_fn = Process(target=producer, args=(queue, ))</span><br><span class="line">    c_fn = Process(target=consumer, args=(queue, ))</span><br><span class="line">    p_fn.start()</span><br><span class="line">    c_fn.start()</span><br><span class="line">    p_fn.join()</span><br><span class="line">    queue.put(<span class="literal">None</span>)  <span class="comment"># 当生产者进程结束后，主进程向队列中发送一个结束标志，消费者进程收到后结束死循环</span></span><br><span class="line">    c_fn.join()</span><br><span class="line">   	<span class="built_in">print</span>(<span class="string">f&quot;子进程全部完成，主进程结束&quot;</span>)  </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>此处有一个额外需要注意点是，Python写进程必须写在main中。因为创建的子进程会自动导入目标函数所在的脚本，如果创建Proces的代码和目标函数的代码写在一起就会导入自己，而导入后，如果没有写在main，就会又创建一个Process，又去导入目标函数所在脚本，这样无限循环。</li>
+</ul>
+<h1 id="线程间通信"><a href="#线程间通信" class="headerlink" title="线程间通信"></a>线程间通信</h1><h2 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h2><p>与多进程的内存独立不同，多线程间可以共享进程的内存，所以同一个变量是可以被多个线程共享的，不需要额外的工具。<strong>想要让多个线程能同时操作某变量，要么将该变量作为参数传递到线程中（必须是可变变量，例如list和dict），要么作为全局变量在线程中用global关键字进行声明</strong>。</p>
+<p>但是，当对全局变量进行写操作的时候，这部分操作需要加锁来保证内存安全。最常见的锁就是<strong>互斥锁</strong>了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lock = threading.Lock()  <span class="comment"># 创建互斥锁</span></span><br><span class="line">lock.acquire()  <span class="comment"># 在对全局变量进行操作之前，加锁</span></span><br><span class="line">lock.release()  <span class="comment"># 对全局变量操作完成之后，释放锁</span></span><br></pre></td></tr></table></figure>
+
+<p>如果线程在进入临界区之前没有获取到锁，该线程就会被阻塞在这里。但是等待锁的过程又会造成大量的时间浪费。因此，我们也可以使用queue来实现线程间的通信。</p>
+<h2 id="Queue"><a href="#Queue" class="headerlink" title="Queue"></a>Queue</h2><p>队列使用方法同进程一样，不再赘述。只需要记住的是，<strong>不管是多线程还是多进程，生产者-消费者模型都可以用队列来完成。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://www.wyylib.top/blog">wyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.wyylib.top/blog/8c1558c98f2b/">https://www.wyylib.top/blog/8c1558c98f2b/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.wyylib.top/blog" target="_blank">Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/blog/tags/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B/">Python多线程</a><a class="post-meta__tags" href="/blog/tags/Python%E5%A4%9A%E8%BF%9B%E7%A8%8B/">Python多进程</a></div><div class="post_share"><div class="social-share" data-image="/blog/img/qq.jpg" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/blog/images/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/blog/images/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/blog/images/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/blog/images/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/blog/22a4f8ed1433/" title="MIT 6.S081 Operating System Enginerring Lab1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MIT 6.S081 Operating System Enginerring Lab1</div></div></a></div><div class="next-post pull-right"><a href="/blog/674e91451bcf/" title="使用Numpy判断多个字符串中是否包含子字符串"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">使用Numpy判断多个字符串中是否包含子字符串</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/blog/9bfad60f2f11/" title="Python多线程中的setDaemon"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-19</div><div class="title">Python多线程中的setDaemon</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/blog/img/qq.jpg" onerror="this.onerror=null;this.src='/blog/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">wyy</div><div class="author-info__description">00后老嵩鼠一只，吱吱吱~~</div></div><div class="card-info-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wy66613"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">暂无公告</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">进程与线程的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GIL%E9%94%81"><span class="toc-number">2.</span> <span class="toc-text">GIL锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">多进程与多线程的使用场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E4%BA%92%E6%96%A5"><span class="toc-number">4.</span> <span class="toc-text">同步互斥</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1"><span class="toc-number">5.</span> <span class="toc-text">进程间通信</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1"><span class="toc-number">6.</span> <span class="toc-text">线程间通信</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%94%81"><span class="toc-number">6.1.</span> <span class="toc-text">锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Queue"><span class="toc-number">6.2.</span> <span class="toc-text">Queue</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/a9404cdab8ad/" title="xv6中trap的执行流（二）">xv6中trap的执行流（二）</a><time datetime="2023-11-09T13:25:29.000Z" title="发表于 2023-11-09 21:25:29">2023-11-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/dcaf3c29aa54/" title="xv6中trap的执行流（一）">xv6中trap的执行流（一）</a><time datetime="2023-11-09T05:48:36.000Z" title="发表于 2023-11-09 13:48:36">2023-11-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/1ab9167ea288/" title="以x86分析栈帧的切换过程">以x86分析栈帧的切换过程</a><time datetime="2023-11-08T13:13:34.000Z" title="发表于 2023-11-08 21:13:34">2023-11-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/8cdfa1ffe25f/" title="MIT 6.S081 Operating System Enginerring Lab4">MIT 6.S081 Operating System Enginerring Lab4</a><time datetime="2023-11-07T09:09:23.000Z" title="发表于 2023-11-07 17:09:23">2023-11-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/47c82acc427f/" title="MIT 6.S081 Operating System Enginerring Lab3">MIT 6.S081 Operating System Enginerring Lab3</a><time datetime="2023-11-03T15:52:42.000Z" title="发表于 2023-11-03 23:52:42">2023-11-03</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 By wyy</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Good luck && Have fun</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/blog/js/utils.js"></script><script src="/blog/js/main.js"></script><script src="/blog/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法制,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script>(() => {
+  window.$crisp = [];
+  window.CRISP_WEBSITE_ID = "afb2763e-7a09-426c-bb94-cfd821d55233";
+  (function () {
+    d = document;
+    s = d.createElement("script");
+    s.src = "https://client.crisp.chat/l.js";
+    s.async = 1;
+    d.getElementsByTagName("head")[0].appendChild(s);
+  })();
+  $crisp.push(["safe", true])
+
+  const isChatBtn = true
+  const isChatHideShow = false
+
+  if (isChatBtn) {
+    const open = () => {
+      $crisp.push(["do", "chat:show"])
+      $crisp.push(["do", "chat:open"])
+    }
+
+    const close = () => {
+      $crisp.push(["do", "chat:hide"])
+    }
+
+    close()
+    $crisp.push(["on", "chat:closed", function() {
+      close()
+    }])
+
+    window.chatBtnFn = () => {
+      $crisp.is("chat:visible") ? close() : open()
+    }
+  } else if (isChatHideShow) {
+    window.chatBtn = {
+      hide: () => {
+        $crisp.push(["do", "chat:hide"])
+      },
+      show: () => {
+        $crisp.push(["do", "chat:show"])
+      }
+    }
+  }
+})()</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
