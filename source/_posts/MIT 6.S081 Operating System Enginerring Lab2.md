@@ -158,7 +158,7 @@ categories:
 
 
 
-## Sysinfo ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))😵‍💫
+# Sysinfo ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))😵‍💫
 
 In this assignment you will add a system call, `sysinfo`, that collects information about the running system.
 
