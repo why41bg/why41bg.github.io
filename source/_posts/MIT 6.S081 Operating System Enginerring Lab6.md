@@ -130,3 +130,137 @@ thread_switch:
 	ret    /* return to ra */
 ```
 
+## Using threads ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+> 分析并解决一个在对哈希表进行操作的过程中，由于 race-condition 导致的数据丢失的问题。
+
+这个实验也比较简单，在找到出现 missing 的原因后，加锁就能解决。出现 missing 的原因如下：
+
+```
+thread 1: 尝试设置 k1
+thread 1: 发现 k1 不存在，尝试在 bucket 末尾插入 k1
+--- scheduler 切换到 thread 2
+thread 2: 尝试设置 k2
+thread 2: 发现 k2 不存在，尝试在 bucket 末尾插入 k2
+thread 2: 分配 entry，在桶末尾插入 k2
+--- scheduler 切换回 thread 1
+thread 1: 分配 entry，没有意识到 k2 的存在，在其认为的 “桶末尾”（实际为 k2 所处位置）插入 k1
+
+[k1 被插入，但是由于被 k1 覆盖，k2 从桶中消失了，引发了键值丢失]
+```
+
+因此，只需要在插入 key 的时候，加桶级锁确保操作原子性即可。修改 `ph.c` 代码如下：
+
+```c
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <assert.h>
+#include <pthread.h>
+#include <sys/time.h>
+
+#define NBUCKET 5
+#define NKEYS 100000
+
+struct entry {
+  int key;
+  int value;
+  struct entry *next;
+};
+struct entry *table[NBUCKET];
+int keys[NKEYS];
+int nthread = 1;
+pthread_mutex_t lock[NBUCKET];  // 为每一个 bucket 声明一个锁
+
+double
+now()
+{
+ struct timeval tv;
+ gettimeofday(&tv, 0);
+ return tv.tv_sec + tv.tv_usec / 1000000.0;
+}
+
+static void 
+insert(int key, int value, struct entry **p, struct entry *n)
+{
+  struct entry *e = malloc(sizeof(struct entry));
+  e->key = key;
+  e->value = value;
+  e->next = n;
+  *p = e;
+}
+
+static 
+void put(int key, int value)
+{
+  int i = key % NBUCKET;
+  pthread_mutex_lock(&lock[i]);  // 加锁
+
+  // is the key already present?
+  struct entry *e = 0;
+  for (e = table[i]; e != 0; e = e->next) {
+    if (e->key == key)
+      break;
+  }
+  if(e){
+    // update the existing key.
+    e->value = value;
+  } else {
+    // the new is new.
+    insert(key, value, &table[i], table[i]);
+  }
+  pthread_mutex_unlock(&lock[i]);  // 释放锁
+}
+
+int
+main(int argc, char *argv[])
+{
+  pthread_t *tha;
+  void *value;
+  double t1, t0;
+
+
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s nthreads\n", argv[0]);
+    exit(-1);
+  }
+  nthread = atoi(argv[1]);
+  tha = malloc(sizeof(pthread_t) * nthread);
+  srandom(0);
+  assert(NKEYS % nthread == 0);
+  for (int i = 0; i < NKEYS; i++) {
+    keys[i] = random();
+  }
+
+  for(int i = 0; i < NBUCKET; i++){
+    pthread_mutex_init(&lock[i], NULL);  // init pthread_mutex_lock
+  }
+}
+```
+
+## Barrier([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+修改 `barrier.c` 中的 `barrier` 函数即可，修改代码如下：
+
+```c
+static void 
+barrier()
+{
+  // YOUR CODE HERE
+  //
+  // Block until all threads have called barrier() and
+  // then increment bstate.round.
+  //
+  pthread_mutex_lock(&(bstate.barrier_mutex));
+  bstate.nthread ++;
+  if(bstate.nthread == nthread){
+    bstate.nthread = 0;
+    bstate.round ++;
+    pthread_cond_broadcast(&(bstate.barrier_cond));
+  } else{
+    pthread_cond_wait(&(bstate.barrier_cond), &(bstate.barrier_mutex));
+  }
+  pthread_mutex_unlock(&(bstate.barrier_mutex));
+}
+```
+
