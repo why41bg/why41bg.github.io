@@ -164,3 +164,128 @@ itrunc(struct inode *ip)
 }
 ```
 
+## Symbolic links ([moderate](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html))
+
+> 这个实验也比较简单，所谓软链接就是一个文件保存着指向另一个文件的路径名，在打开文件的时候根据保存的路径名去找实际的文件位置。实验说明中提出来的就不在下面写出来了，下面只记录关于两个关键函数的实现。
+
+`kernel/sysfile.c` 中的函数 `sys_symlink` 实现如下：
+
+```c
+uint64
+sys_symlink(void){
+  char target[MAXPATH], path[MAXPATH];
+  struct inode *ip;
+
+  if(argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0)
+    return -1;
+
+  begin_op();
+  if((ip = create(path, T_SYMLINK, 0, 0)) == 0){
+    end_op();
+    return -1;
+  }
+
+  if(writei(ip, 0, (uint64)target, 0 ,MAXPATH) != MAXPATH)
+    return -1;
+
+  iunlockput(ip);
+  end_op();
+  return 0;
+}
+```
+
+`kernel/sysfile.c` 中的函数 `sys_open` 需要修改，修改后的函数如下：
+
+```c
+uint64
+sys_open(void)
+{
+  char path[MAXPATH];
+  int fd, omode;
+  struct file *f;
+  struct inode *ip;
+  int n;
+
+  if((n = argstr(0, path, MAXPATH)) < 0 || argint(1, &omode) < 0)
+    return -1;
+
+  begin_op();
+
+  if(omode & O_CREATE){
+    ip = create(path, T_FILE, 0, 0);
+    if(ip == 0){
+      end_op();
+      return -1;
+    }
+  } else {
+    if((ip = namei(path)) == 0){
+      end_op();
+      return -1;
+    }
+    ilock(ip);
+    if(ip->type == T_DIR && omode != O_RDONLY){
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+  }
+
+  if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  if(ip->type == T_SYMLINK){
+    if(!(omode & O_NOFOLLOW)){
+      int cycle = 0;
+      char target[MAXPATH];
+      while(ip->type == T_SYMLINK){
+        if(cycle == 10){
+          iunlockput(ip);
+          end_op();
+          return -1; // max cycle
+        }
+        cycle++;
+        memset(target, 0, sizeof(target));
+        readi(ip, 0, (uint64)target, 0, MAXPATH);
+        iunlockput(ip);
+        if((ip = namei(target)) == 0){
+          end_op();
+          return -1; // target not exist
+        }
+        ilock(ip);
+      }
+    }
+  }
+
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  if(ip->type == T_DEVICE){
+    f->type = FD_DEVICE;
+    f->major = ip->major;
+  } else {
+    f->type = FD_INODE;
+    f->off = 0;
+  }
+  f->ip = ip;
+  f->readable = !(omode & O_WRONLY);
+  f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+
+  if((omode & O_TRUNC) && ip->type == T_FILE){
+    itrunc(ip);
+  }
+
+  iunlock(ip);
+  end_op();
+
+  return fd;
+}
+```
+
