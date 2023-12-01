@@ -1,5 +1,5 @@
 ---
-title: MIT 6.S081 Operating System Enginerring Lab2
+title: MIT 6.S081 Operating System Enginerring Lab System calls
 date: 2023-10-22 11:56:28
 tags:
 - OS

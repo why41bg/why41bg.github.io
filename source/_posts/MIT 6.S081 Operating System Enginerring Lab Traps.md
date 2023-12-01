@@ -1,5 +1,5 @@
 ---
-title: MIT 6.S081 Operating System Enginerring Lab4
+title: MIT 6.S081 Operating System Enginerring Lab Traps
 date: 2023-11-07 17:09:23
 tags:
 - XV6

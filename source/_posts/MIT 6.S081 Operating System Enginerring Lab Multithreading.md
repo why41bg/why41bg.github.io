@@ -1,5 +1,5 @@
 ---
-title: MIT 6.S081 Operating System Enginerring Lab6
+title: MIT 6.S081 Operating System Enginerring Lab Multithreading
 date: 2023-11-28 09:37:18
 tags:
 - XV6
