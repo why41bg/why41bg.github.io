@@ -547,8 +547,8 @@ daovoice:
 # crisp
 # https://crisp.chat/en/
 crisp:
-  enable: true
-  website_id: afb2763e-7a09-426c-bb94-cfd821d55233
+  enable: false
+  website_id: 
 
 # messenger
 # https://developers.facebook.com/docs/messenger-platform/discovery/facebook-chat-plugin/
