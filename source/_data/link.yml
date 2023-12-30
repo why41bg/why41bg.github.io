@@ -20,7 +20,11 @@
     - name: Linux命令速查
       link: https://www.linuxcool.com/
       avatar: https://www.linuxcool.com/favicon.ico
-      descr: 方便快速地查询linux指令
+      descr: 速查linux命令
+    - name: Redis命令速查
+      link: https://redis.com.cn/commands.html
+      avatar: https://redis.com.cn/images/favicon.png
+      descr: 速查Redis命令
     - name: 毛子的资源网站
       link: https://rutor-org.games/
       avatar: https://rutor-org.games/favicon.ico
