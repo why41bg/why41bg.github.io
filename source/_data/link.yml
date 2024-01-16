@@ -33,3 +33,7 @@
       link: https://scikit-learn.org/stable/modules/classes.html
       avatar: https://scikit-learn.org/stable/_static/favicon.ico
       descr: sklearn API document
+    - name: Java17中文文档
+      link: https://doc.qzxdp.cn/jdk/17/zh/api/index.html
+      avatar: https://doc.qzxdp.cn/favicon.ico
+      descr: Java®平台、标准版和 Java 开发工具包。17 版本 API 规范中文版
