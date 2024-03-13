@@ -5,15 +5,15 @@
 # Site
 title: Blog
 subtitle: ''
-description: '叹一句当时只道是寻常'
-keywords: wyy
-author: wyy
+description: '不如吃茶去'
+keywords: why
+author: why
 language: zh-CN
 timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: https://www.wyylib.top/blog/
+url: https://blog.wyylib.top/
 root: /blog/
 permalink: :title/  # :year/:month/:day/:title/
 permalink_defaults:

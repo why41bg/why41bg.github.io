@@ -164,7 +164,7 @@ post_copyright:
 
 # Sponsor/reward
 reward:
-  enable: True
+  enable: false
   QR_code:
     - img: /images/wechat.jpg
       link:
@@ -232,7 +232,7 @@ aside:
       enable: true
       icon: fab fa-github
       text: Follow Me
-      link: https://github.com/wy66613
+      link: https://github.com/why41bg
   card_announcement:
     enable: true
     content: 暂无公告
