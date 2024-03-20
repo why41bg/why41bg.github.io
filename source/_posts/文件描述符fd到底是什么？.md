@@ -1,9 +1,13 @@
 ---
+
 title: 文件描述符fd到底是什么？
 date: 2023-10-24 23:21:42
 tags:
+
 - OS
+
 ---
+
 > fd 是 File descriptor 的缩写，中文名叫做：文件描述符。文件描述符是一个非负整数，本质上是一个索引值。在 POSIX（可移植操作系统接口，由IEEE发布） 语义中，0，1，2 这三个 fd 值已经被赋予特殊含义，分别是标准输入（ STDIN_FILENO ），标准输出（ STDOUT_FILENO ），标准错误（ STDERR_FILENO ）。
 
 下面进入 Linux 内核当中去看看所谓的文件描述符到底是个啥。
@@ -14,7 +18,7 @@ tags:
 
 ```c
 struct task_struct{
-	/* open file information */
+    /* open file information */
     struct files_struct *files;
 }
 ```
