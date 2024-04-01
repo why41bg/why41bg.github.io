@@ -1,0 +1,101 @@
+---
+title: Java设计模式之代理模式
+date: 2024-04-01 18:17:31
+tags:
+- java
+- GoF设计模式
+categories:
+- GoF设计模式
+---
+
+# 代理模式
+
+## 设计思想
+
+代理模式的设计思想很简单，为另一个对象提供一个代理对象，以控制对其的访问。代理设计模式用于当我们希望提供功能的受控访问时。假设有一个类，可以在系统上运行一些命令。现在如果我们在使用它，那很好，但如果我们想将这个程序提供给一个客户端应用程序，可能会出现严重问题，因为客户端程序可能会发出命令来删除一些系统文件或更改一些您不希望更改的设置。在这种情况下，可以创建一个代理类来提供对程序的受控访问。
+
+## Demo
+
+首先定义这个类的接口，如下：
+
+`ICommandExecutor`
+
+``` java
+public interface ICommandExecutor {
+  public void runCommand(String cmd);
+}
+```
+
+接下来实现类：
+
+`CommandExecutorImpl`
+
+```java
+public class CommandExecutorImpl implements ICommandExecutor {
+  @Override
+  public void runCommand(String cmd) {
+    System.out.println("'" + cmd + "'" + "执行成功");
+  }
+}
+```
+
+为这个 `CommandExecutorImpl` 类实现一个代理类对其进行访问控制，代理类如下：
+
+`CommandExecutorProxy`
+
+``` java
+public class CommandExecutorProxy {
+  private boolean isAdmin = false;
+  private ICommandExecutor commandExecutor;
+  
+  public CommandExecutorProxy(String pwd) {
+    if ("key".equals(pwd)) {
+      isAdmin = true;
+      commandExecutor = new CommandExecutorImpl();
+    }    
+  }
+  
+  public void runCommand(String cmd) {
+    if (isAdmin) {
+      commandExecutor.runCommand(cmd);
+    } else {
+      System.out.println("无权限！");
+    }
+  }
+  
+}
+```
+
+## 测试用例
+
+`ProxyTest`
+
+``` java
+public class Main {
+  public static void main() {
+    test1();
+    test2();
+  }
+  
+  public static void test1() {
+    CommandExecutorProxy cmd = new CommandExecutorProxy("key");
+    cmd.runCommand("吃吃吃！");
+  }
+  
+  public sstatic void test2() {
+    CommandExecutorProxy cmd = new CommandExecutorProxy("nokey");
+    cmd.runCommand("吃吃吃！");
+  }
+}
+```
+
+测试类运行结果如下：
+
+```
+'吃吃吃！' success.
+无权限！
+```
+
+## 总结
+
+在这个 demo 中，我们向外暴露了代理类和被代理类，但是一种更好的设计是：**不把代理类暴露给外部世界，并在实际执行命令之前通过一种过滤器的方式完成功能。**而代理模式的实际运用，也正是采用的这种方式。
