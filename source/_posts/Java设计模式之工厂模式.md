@@ -4,6 +4,8 @@ date: 2024-04-01 02:10:25
 tags:
 - java
 - GoF设计模式
+categories:
+- GoF设计模式
 ---
 
 # 工厂模式
