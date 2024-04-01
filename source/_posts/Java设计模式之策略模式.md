@@ -117,6 +117,11 @@ public class ShoppingCart {
     return sum;
   }
   
+  public boolean addItem(Item i) {
+    this.items.add(i);
+    return true;
+  }
+  
   public boolean pay(IPayMethod payStrategy) {
     return payStrategy.pay(this.getTotalPrice());
   }
