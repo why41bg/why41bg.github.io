@@ -11,45 +11,45 @@ tags:
 
 当在 shell 中使用 write 系统调用时，操作系统将从用户态转变为内核态，从而请求内核提供服务。实际上，write 通过执行 ecall 指令来请求系统调用，ecall 指令会切换到具有 supervisor mode 的内核中，这里涉及到的其实就是系统调用方面的知识了。write 的本质其实就是通过 Trap（陷入），用户程序主动将处理器控制权交给操作系统，由操作系统内核提供需要的服务，然后操作系统再将控制权还给用户程序，下图是 write 系统调用的执行流程。
 
-![Trap执行流程](/images/Trap执行流程.png)
+![Trap执行流程](./xv6中trap的执行流（一）/Trap执行流程.png)
 
 # ECALL指令执行前的状态
 
 接下来，Robert 带我们进入了 gdb 的世界中，通过跟踪一个 XV6 的系统调用，来演示上述 Trap 的执行流。我们跟踪的这个系统调用，也就是 shell 将它的提示信息通过 write 系统调用走到操作系统再输出到 console 的过程。首先，用户代码 sh.c 初始化了这一切。
 
-![sh.c的初始化](/images/sh.c的初始化.webp)
+![sh.c的初始化](./xv6中trap的执行流（一）/sh.c的初始化.webp)
 
 上图中选中的行，是一个 write 系统调用，它将“$ ”写入到文件描述符2。接下来打开 gdb 并启动 XV6。作为用户代码的 shell 调用 write 时，实际上调用的是关联到 shell 的一个库函数。你可以查看这个库函数的源代码，在usys.s。
 
-![调用write时实际调用的库函数](/images/调用write时实际调用的库函数.webp)
+![调用write时实际调用的库函数](./xv6中trap的执行流（一）/调用write时实际调用的库函数.webp)
 
 上面这几行代码就是实际被调用的 write 函数的实现。这是个非常短的函数，它首先将 SYS_write 加载到 a7 寄存器，SYS_write 是常量16。这里告诉内核，我想要运行第16个系统调用，而这个系统调用正好是 write。之后这个函数中执行了 ecall 指令，从这里开始代码执行跳转到了内核。内核完成它的工作之后，代码执行会返回到用户空间，继续执行 ecall 之后的指令，也就是 ret，最终返回到 shell 中。所以 ret 从 write 库函数返回到了 shell 中。
 
 为了展示这里的系统调用，我会在 ecall 指令处放置一个断点，为了能放置断点，我们需要知道 ecall 指令的地址，我们可以通过查看由 XV6 编译过程产生的sh.asm 找出这个地址。sh.asm 是带有指令地址的汇编代码。我这里会在 ecall 指令处放置一个断点，这条指令的地址是 0xde6。
 
-![ecall指令的地址](/images/ecall指令的地址.webp)
+![ecall指令的地址](./xv6中trap的执行流（一）/ecall指令的地址.webp)
 
 现在，我要让 XV6 开始运行。我期望的是 XV6 在 shell 代码中正好在执行 ecall 之前就会停住。完美，从gdb可以看出，我们下一条要执行的指令就是 ecall。不仅如此，我们来检验一下我们真的在我们以为自己在的位置，让我们来打印程序计数器（Program Counter），也正好我们期望在的位置 0xde6。
 
-![PC中存放的是ecall指令地址](/images/PC中存放的是ecall指令地址.png)
+![PC中存放的是ecall指令地址](./xv6中trap的执行流（一）/PC中存放的是ecall指令地址.png)
 
 我们还可以输入 *info reg* 打印全部32个用户寄存器。
 
-![ecall执行前32个reg的值](/images/ecall执行前32个reg的值.png)
+![ecall执行前32个reg的值](./xv6中trap的执行流（一）/ecall执行前32个reg的值.png)
 
 这里有一些数值我们还不知道，也不关心，但是这里的a0，a1，a2是 shell 传递给 write 系统调用的参数。所以a0是文件描述符2；a1是 shell 想要写入字符串的指针；a2是想要写入的字符数。我们还可以通过打印 shell 想要写入的字符串内容，来证明断点停在我们认为它应该停在的位置。
 
-![shell传递给write的参数](/images/shell传递给write的参数.png)
+![shell传递给write的参数](./xv6中trap的执行流（一）/shell传递给write的参数.png)
 
 可以看出，输出的确是美元符（$）和一个空格。所以，我们现在位于我们期望所在的 write 系统调用函数中。有一件事情需要注意，上图的寄存器中，程序计数器（pc）和堆栈指针（sp）的地址现在都在距离0比较近的地址，这进一步印证了当前代码运行在用户空间，因为用户空间中所有的地址都比较小。但是一旦我们进入到了内核，内核会使用大得多的内存地址。
 
 系统调用的时间点会有大量状态的变更，其中一个最重要的需要变更的状态，并且在它变更之前我们对它还有依赖的，就是是当前的 page table。我们可以查看STAP 寄存器。
 
-![ecall执行前的SATP寄存器](/images/ecall执行前的SATP寄存器.png)
+![ecall执行前的SATP寄存器](./xv6中trap的执行流（一）/ecall执行前的SATP寄存器.png)
 
 这里输出的是物理内存地址，它并没有告诉我们有关 page table 中的映射关系是什么，page table 长什么样。但是幸运的是，在QEMU中有一个方法可以打印当前的 page table。从QEMU界面，输入*ctrl a + c*可以进入到QEMU的 console，之后输入 *info mem*，QEMU会打印完整的 page table。
 
-![shell的pgtbl](/images/shell的pgtbl.png)
+![shell的pgtbl](./xv6中trap的执行流（一）/shell的pgtbl.png)
 
 这是个非常小的 page table，它只包含了6条映射关系。这是用户程序 shell 的 page table，而 shell 是一个非常小的程序，这6条映射关系是有关 shell 的指令和数据，以及一个无效的 page 用来作为 guard page，以防止 shell 尝试使用过多的 stack page。我们可以看出这个 page 是无效的，因为在 attr 这一列它并没有设置 u 标志位（第三行）。attr 这一列是 PTE 的标志位，第三行的标志位是 rwx 表明这个 page 可以读，可以写，也可以执行指令。之后的是 u 标志位，它表明PTE_u 标志位是否被设置，用户代码只能访问 u 标志位设置了的 PTE。再下一个标志位我也不记得是什么了（这个标志位是 Global ）。再下一个标志位是 a（Accessed），表明这条 PTE 是不是被使用过。再下一个标志位d（Dirty）表明这条 PTE 是不是被写过。
 
@@ -65,7 +65,7 @@ tags:
 
 接下来，我会在Shell中打印出write函数的内容。
 
-![write函数中的内容](/images/write函数中的内容.png)
+![write函数中的内容](./xv6中trap的执行流（一）/write函数中的内容.png)
 
 程序计数器现在指向 ecall 指令，我们接下来要执行 ecall 指令。现在我们还在用户空间，但是马上我们就要进入内核空间了。
 
@@ -73,13 +73,13 @@ tags:
 
 现在我执行 ecall 指令（但是我们并不能在 gdb 中看到 ecall 指令执行的过程，ecall 是CPU的指令，自然在gdb中看不到具体内容），第一个问题，执行完了 ecall 之后我们现在在哪？我们可以打印程序计数器（Program Counter）来查看。
 
-![执行ecall后PC的值](/images/执行ecall后PC的值.png)
+![执行ecall后PC的值](./xv6中trap的执行流（一）/执行ecall后PC的值.png)
 
 可以看到程序计数器的值变化了，之前我们的程序计数器还在一个很小的地址 0xde6，但是现在在一个大得多的地址。我们还可以查看 page table，如果我们在 QEMU 中执行 info mem 来查看当前的 page table，可以看到，还是与之前完全相同的 page table，所以 page table没有改变。
 
 根据现在的程序计数器，代码正在 trampoline page 的最开始，这是用户内存中一个非常大的地址。所以现在我们的指令正运行在内存的 trampoline page 中。我们可以来查看一下现在将要运行的指令。
 
-![trampolinePage中的内容](/images/trampolinePage中的内容.png)
+![trampolinePage中的内容](./xv6中trap的执行流（一）/trampolinePage中的内容.png)
 
 这些指令是内核在 supervisor mode 中将要执行的最开始的几条指令，也是在 trap 机制中最开始要执行的几条指令。因为 gdb 有一些奇怪的行为，我们实际上已经执行了位于 trampoline page 最开始的一条指令（注，也就是csrrw指令），我们将要执行的是第二条指令。
 
@@ -93,7 +93,7 @@ tags:
 
 这里的控制是通过 STVEC（Supervisor Trap Vector Base Address Register） 寄存器完成的，这是一个只能在 supervisor mode 下读写的特权寄存器。在从内核空间进入到用户空间之前，内核会设置好 STVEC 寄存器指向内核希望 trap 代码运行的位置。
 
-![STVEC寄存器中的值](/images/STVEC寄存器中的值.png)
+![STVEC寄存器中的值](./xv6中trap的执行流（一）/STVEC寄存器中的值.png)
 
 所以如你所见，内核已经事先设置好了 STVEC 寄存器的内容为 0x3ffffff000，这就是 trampoline page 的起始位置。STVEC 寄存器的内容，就是在 ecall 指令执行之后，我们会在这个特定地址执行指令的原因。
 
@@ -106,7 +106,7 @@ tags:
 第一，ecall 将代码从 user mode 改到 supervisor mode。
 
 第二，ecall 将程序计数器的值保存在了 SEPC（Supervisor Exception Program Counter） 寄存器，该寄存器在 trap 的过程中保存程序计数器的值。我们可以通过打印 SEPC 寄存器看到这里的效果
-![SEPC寄存器中的值](/images/SEPC寄存器中的值.png)
+![SEPC寄存器中的值](./xv6中trap的执行流（一）/SEPC寄存器中的值.png)
 尽管其他的寄存器还是还是用户寄存器，但是此时的程序计数器明显已经不是用户代码的程序计数器，而是从 STVEC 寄存器拷贝过来的值。
 
 第三，ecall 会跳转到 STVEC 寄存器指向的指令。

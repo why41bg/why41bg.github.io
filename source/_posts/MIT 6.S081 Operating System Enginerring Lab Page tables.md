@@ -16,7 +16,7 @@ categories:
 
 A process's user address space, with its initial stack.
 
-![用户进程的地址空间](/images/用户进程的地址空间.png)
+![用户进程的地址空间](./MIT 6.S081 Operating System Enginerring Lab Page tables/用户进程的地址空间.png)
 
 这是XV6中关于用户进程的地址空间定义，在下面的实验的会用到。
 

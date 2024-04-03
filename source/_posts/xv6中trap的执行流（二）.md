@@ -126,7 +126,7 @@ struct trapframe {
 
 程序现在仍然在 trampoline 的最开始，也就是 uservec 函数的开始部分，我们基本上除了保存用户寄存器的值外，还没有执行任何内容。我在寄存器拷贝的结束位置设置了一个断点，我们在 gdb 中让代码继续执行，现在我们停在了下面这条ld（load）指令。
 
-![寄存器拷贝结束后的断点](/images/寄存器拷贝结束后的断点.png)
+![寄存器拷贝结束后的断点](./xv6中trap的执行流（二）/寄存器拷贝结束后的断点.png)
 
 这条指令正在将 a0 指向的内存地址往后数的第8个字节开始的数据加载到 Stack Pointer 寄存器。a0 的内容现在是 trapframe page 的地址，从本节第一张图中，trapframe 的格式可以看出，第8个字节开始的数据是内核的 Stack Pointer（kernel_sp）。trapframe 中的 kernel_sp 是由 kernel 在进入用户空间之前就设置好的，它的值是这个进程的 kernel stack。所以这条指令的作用是初始化 Stack Pointer 指向这个进程的 kernel stack 的最顶端。
 
@@ -138,7 +138,7 @@ struct trapframe {
 
 下一条指令是交换 SATP 和 t1 寄存器。这条指令执行完成之后，**当前程序会从 user page table 切换到 kernel page table。**现在我们在QEMU中打印 page table，可以看出与之前的 page table 完全不一样。
 
-![kernel页表](/images/kernel页表.webp)
+![kernel页表](./xv6中trap的执行流（二）/kernel页表.webp)
 
 现在这里输出的是由内核设置好的巨大的 kernel page table。所以现在我们成功的切换了 page table，我们在这个位置进展的很好，Stack Pointer 指向了 kernel stack；我们有了 kernel page table，可以读取 kernel data。我们已经准备好了执行内核中的C代码了。
 
@@ -238,7 +238,7 @@ syscall(void)
 
 这里有件有趣的事情，系统调用需要找到它们的参数。你们还记得 write 函数的参数吗？分别是文件描述符2，写入数据缓存的指针，写入数据的长度2。syscall 函数直接通过 trapframe 来获取这些参数，就像这里刚刚可以查看 trapframe中 的 a7 寄存器一样，我们可以查看 a0 寄存器，这是第一个参数，a1 是第二个参数，a2 是第三个参数。
 
-![查看write函数传递到参数](/images/查看write函数传递到参数.png)
+![查看write函数传递到参数](./xv6中trap的执行流（二）/查看write函数传递到参数.png)
 
 现在 syscall 执行了真正的系统调用，之后 sys_write 返回了。 `p->trapframe->a0 = syscalls[num]()`。这里向 trapframe 中的 a0 赋值的原因是：所有的系统调用都有一个返回值，比如 write 会返回实际写入的字节数，而 RISC-V 上的C代码的习惯是函数的返回值存储于寄存器 a0，所以为了模拟函数的返回，我们将返回值存储在 trapframe 的 a0 中。之后，当我们返回到用户空间，trapframe 中的a0槽位的数值会写到实际的 a0 寄存器，shell 就会认为 a0 寄存器中的数值是write 系统调用的返回值。
 
@@ -391,7 +391,7 @@ sret 是我们在 kernel 中的最后一条指令，当我执行完这条指令�
 
 现在我们终于回到了用户空间。PC 寄存器中的值如下。
 
-![回到用户空间后PC的值](/images/回到用户空间后PC的值.png)
+![回到用户空间后PC的值](./xv6中trap的执行流（二）/回到用户空间后PC的值.png)
 
 如果我们查看 sh.asm，可以看到这个地址是 write 函数的 ret 指令地址。所以，现在我们回到了用户空间，执行完 ret 指令之后我们就可以从 write 系统调用返回到 shell中 了。或者更严格的说，是从触发了系统调用的 write 库函数中返回到 shell 中。
 

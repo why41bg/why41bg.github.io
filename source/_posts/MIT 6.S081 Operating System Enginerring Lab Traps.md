@@ -73,13 +73,13 @@ void main(void) {
 
 每一个栈帧的结构图如下：
 
-![XV6中栈帧的简单示意图](/images/XV6中栈帧的简单示意图.png)
+![XV6中栈帧的简单示意图](./MIT 6.S081 Operating System Enginerring Lab Traps/XV6中栈帧的简单示意图.png)
 
 栈帧从栈底（高地址处）开始的第一个8字节存储返回地址，第二个8字节存储上一个栈帧的栈底（fp）。
 
 关于RISC-V中的必要的寄存器说明如下图：
 
-![Regster-info](/images/Regster-info.png)
+![Regster-info](./MIT 6.S081 Operating System Enginerring Lab Traps/Regster-info.png)
 
 其中 `s0` 存储堆栈帧指针，在实验说明中的 hints 中也指出了：“ The GCC compiler stores the frame pointer of the currently executing function in the register `s0` ”。整个实验流程大致分为如下几步：
 
