@@ -13,10 +13,6 @@
 - class_name: 网站
   class_desc: 值得推荐的网站
   link_list:
-    - name: chatgpt-next-web
-      link: https://q.wyylib.top/
-      avatar: https://gpt.wyylib.top/favicon.ico
-      descr: 使用chatgpt-next-web搭建的web版gpt
     - name: Linux命令速查
       link: https://www.linuxcool.com/
       avatar: https://www.linuxcool.com/favicon.ico
