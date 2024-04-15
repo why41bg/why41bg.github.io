@@ -22,7 +22,7 @@ categories:
 
 下面逐一说明单例模式的8种实现。
 
-### 一. 饿汉式初始化
+## 一. 饿汉式初始化
 
 使用 Eager 实现，单例类的实例在类加载的时候就初始化了（类变量，与类加载的知识有关）。这种方式的缺点是，即使应用程序没有使用它，它也会被创建。下面是 demo：
 
@@ -40,7 +40,7 @@ public class EagerInitSingleton {
 
 在 Eager 这种实现方式中，单例类的私有静态变量就是该类的唯一实例，并且在类加载的时候就初始化了。构造方法也被私有化了，防止其他类实例化单例类。最后暴露了一个接口，向外部提供单例类的实例化对象。
 
-### 二. 静态代码块初始化
+## 二. 静态代码块初始化
 
 静态代码块初始化和饿汉式初始化很类似，区别在于在静态块初始化中，实例对象是在静态代码块中创建的，因此可以提供额外的异常处理。下面是 demo：
 
@@ -64,7 +64,7 @@ public class StaticBlockInitSingleton {
 }
 ```
 
-### 三. 懒汉式初始化
+## 三. 懒汉式初始化
 
 懒汉式初始化的思想是延迟实例对象的初始化，在外部请求获取实例对象的时候才去创建，而不是在类加载的时候就创建。下面是 demo：
 
@@ -75,16 +75,16 @@ public class LazyInitSingleton {
   private LazyInitSingleton() {}
 
   public static LazyInitSingleton getInstance() {
-    if (instance != null) {
-      instance = new LazyInitSingleton();
-    }     
+    if (instance != null) return instance;
+    instance = new LazyInitSingleton();
+   	return instance;
   }
 }
 ```
 
 这种方式只适用于单线程，在多线程环境下会出现并发问题。
 
-### 四. 基于同步锁保证线程安全的懒汉式初始化
+## 四. 同步锁保证线程安全
 
 创建线程安全的单例类最简单的方法其实就是为全局访问点加上一个同步锁，来限制一次只能有一个线程来尝试实例化对象。下面是 demo：
 
@@ -103,7 +103,9 @@ public class ThreadSafeLazyInitSingleton {
 }
 ```
 
-这种基于同步锁来保证线程安全的方法会降低一定的性能，可优化的点就在于不管实例化对象是否存在，线程都需要互斥地去尝试获取实例对象，而如果实例化对象已经存在，线程去获取实例化对象是可以不用互斥进行的。因此，可以缩小锁的范围，只有实例化对象不存在的时候才加锁，这样也就保证了在实例对象不存在的情况下，只能有一个线程去初始化实例对象。而实例化对象如果存在，那么线程去获取实例化对象就无需互斥进行。
+这种基于同步锁来保证线程安全的方法会降低一定的性能，可优化的点就在于不管实例化对象是否存在，线程都需要互斥地去尝试获取实例对象，而如果实例化对象已经存在，线程去获取实例化对象是可以不用互斥进行的。因此，可以缩小锁的范围，只有实例化对象不存在的时候才加锁，这样也就保证了在实例对象不存在的情况下，只能有一个线程去初始化实例对象。而实例化对象如果存在，那么线程去获取实例化对象就无需互斥进行。这就是下面的双重锁检验实现单例模式的思想。
+
+## 五. 双重锁检验实现单例模式
 
 ``` java
 public class ThreadSafeLazyInitSingleton {
@@ -124,11 +126,33 @@ public class ThreadSafeLazyInitSingleton {
 }
 ```
 
-第一次检验是为了保证在实例对象不存在的情况下，才让线程去互斥的尝试初始化实例对象。第二次检验是为了防止一个线程 A 在通过第一次检验之后，发生了线程调度，另一个线程 B 也能通过第一次检验并初始化对象，A 重回处理机后又去覆盖了实例化对象，导致 A 和 B 拿到的不是同一个对象。
+第一次检验是为了保证在实例对象不存在的情况下，才让线程去互斥的尝试初始化实例对象。第二次检验是为了防止一个线程 A 在通过第一次检验之后，发生了线程调度，另一个线程 B 也能通过第一次检验并初始化对象，A 重新上处理机后又去覆盖了实例化对象，导致 A 和 B 拿到的不是同一个对象。
 
-### 五. 静态内部类实现
+## 六. CAS锁实现单例模式
 
-使用静态内部辅助类来实现单例模式，即将初始化对象的工作交给一个静态的内部类。这是目前使用最广泛的一种实现单例模式的方式，因为它不需要同步。下面是 demo：
+```java
+public class CasInitSingleton {
+  private static CasInitSingleton instance;
+  private static final AtomicReference<CasInitSingleton> INSTANCE = new AtomicReference<>();
+  
+  private CasInitSingleton() {}
+  
+  public static CasInitSingleton getInstance() {
+    for (;;) {
+      this.instance = this.INSTANCE.get();
+      if (this.instance != null) return this.instance;
+      this.INSTANCE.compareAndSet(null, new CasInitSingleton());
+      return this.INSTANCE.get();
+    }
+  }
+}
+```
+
+`AtomicReference` 可以封装引⽤⼀个 V 实例，⽀持并发访问，如上的单例⽅式就是使⽤了这样的⼀个特点。`CAS` 也有⼀个缺点就是忙等，如果⼀直没有获取到将会处于死循环中。
+
+## 七. 静态内部类实现
+
+使用静态内部辅助类来实现单例模式，即将初始化对象的工作交给一个静态的内部类。这是目前使用**最广泛**的一种实现单例模式的方式，因为它不需要同步。下面是 demo：
 
 ``` java
 public class BillPughSingleton {
@@ -146,7 +170,7 @@ public class BillPughSingleton {
 
 需要注意的是：这个静态内部类不会随着单例类的加载而加载，而是在 getInstance 这个方法调用的时候才会被加载到内存。
 
-### 六. 反射破坏破坏单例模式
+## 八. 反射破坏破坏单例模式
 
 反射破坏单例模式的原因在于：单例模式要求私有化构造函数，而通过反射可以获取私有化的构造函数。下面是反射破坏单例模式的一个 demo：
 
@@ -176,7 +200,7 @@ public class ReflectionSingletonTest {
 }
 ```
 
-### 七. 枚举实现单例模式
+## 九. 枚举实现单例模式
 
 为了防止反射对于单例模式的破坏，可以使用枚举来实现单例模式。原因在于 Java 会确保在程序中枚举类只会被实例化一次。枚举实现的缺点在于不够灵活，不支持懒加载。下面是 demo：
 
@@ -190,10 +214,18 @@ public enum EnumSingleton {
 }
 ```
 
-### 八. 序列化与单例模式
+## 十. 序列化与单例模式
 
 有时候在分布式系统中，需要对一个单例类实现序列化，以便将其存储在文件系统中。但是在反序列化的时候会创建一个新的实例对象，这样就破坏了单例模式。针对这个问题的解决方案，只需要实现一个 readResolve 方法，在这个方法当中调用全局接入点并返回。
+
+
 
 # 总结
 
 此篇博客写于2024年4月1日凌晨1.44，仅以此纪念被某多多击穿的处女面。。
+
+
+
+# 更新
+
+- 2024.4.15 新增了一种 `CAS` 实现单例模式的方式
