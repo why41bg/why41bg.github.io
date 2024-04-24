@@ -58,8 +58,8 @@ class Solution {
         int ret = 0;
         int[] dist = new int[n];
         for (int i = 0; i < n; i++) dist[i] = INF;  // dist[i] 表示从k到i的最短路径
+      	dist[k - 1] = 0;
         boolean[] vis = new boolean[n];  // 是否确定了最短路
-        dist[k - 1] = 0;
         while (true) {
             int x = -1;  // 未确定最短路的节点中，路径最短的那一个
             for (int i = 0; i < n; i++) {
@@ -67,6 +67,9 @@ class Solution {
             }
             if (x == -1) return ret;  // 所有节点都确定完了，返回结果
             if (dist[x] == INF) return -1;  // x节点没有确定最短路，且无法到达
+          	// 如果是求 start 到 end 的最短距离，应该这么写：
+          	// if (x == -1 || dist[x] == INF) return -1;
+          	// if (x == end) return dist[x];
             ret = dist[x];
             vis[x] = true;
             for (int y = 0; y < n; y++) {
