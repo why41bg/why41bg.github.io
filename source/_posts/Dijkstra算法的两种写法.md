@@ -10,7 +10,7 @@ categories:
 - 想成为算法高手
 ---
 
-> 前言：Dijkstra 算法有朴素版和堆优化版。假设节点数量为 n，边的数量为 m。那么朴素版 Dijkstra 的时间复杂度为 O(n^2)，堆优化版的时间复杂度为 O(mlogn)。因此，**当图为稠密图时，使用朴素版，当图为稀疏图时，使用堆优化版**。
+> 前言：Dijkstra 算法有朴素版和堆优化版。假设节点数量为 n，边的数量为 m。那么朴素版 Dijkstra 的时间复杂度为 O(n^2^)，堆优化版的时间复杂度为 O(mlogm)。因此，**当图为稠密图时，使用朴素版，当图为稀疏图时，使用堆优化版**。
 
 # Dijkstra
 
@@ -30,11 +30,19 @@ categories:
 6. 此时 dist 数组中，就保存了源点到其余各个节点的最短距离。
 	![算法流程图-6](./Dijkstra算法的两种写法/Dijkstra算法流程图6.png)
 
+算法思想：
+
+Dijkstra 算法思想简单来说就是将图中所有节点分为了**已确定最短路**和**未确定最短路**的两个部分，每次循环都从**未确定最短路**的节点当中找到距离**已确定最短路**节点集合最近的那个节点，将其加入已确定的集合中，然后用它的最短路去更新与它相邻的**未确定最短路**的节点的距离。
+
+当所有节点都加入了**已确定最短路**的节点集合时，就说明图中任意两点可达。如果存在**未确定最短路**的节点，说明该节点孤立。
+
 
 
 # 题目
 
 [LeetCode 743](https://leetcode.cn/problems/network-delay-time/description/)
+
+题目简单来说就是，给定一个有向带权图，找到从一个点 `k` 出发，到图中其它所有节点的最短路径的最大值（距离 `k` 最远的节点的距离）。如果有任意节点不能达到，则返回 `-1`。
 
 
 
@@ -59,9 +67,9 @@ class Solution {
         int[] dist = new int[n];
         for (int i = 0; i < n; i++) dist[i] = INF;  // dist[i] 表示从k到i的最短路径
       	dist[k - 1] = 0;
-        boolean[] vis = new boolean[n];  // 是否确定了最短路
+        boolean[] vis = new boolean[n];  // 记录已确定节点和未确定节点
         while (true) {
-            int x = -1;  // 未确定最短路的节点中，路径最短的那一个
+            int x = -1;  // 所有未确定最短路的节点中，路径最短的那一个
             for (int i = 0; i < n; i++) {
                 if (!vis[i] && (x == -1 || dist[i] < dist[x])) x = i;
             }
@@ -103,7 +111,7 @@ class Solution {
         // dijkstra
         int INF = Integer.MAX_VALUE / 2;
         int ret = 0;
-        int count = n;
+        int count = n;  // 已确定最短路节点的数量
         PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> (a[0] - b[0]));
         int[] dist = new int[n];
         Arrays.fill(dist, INF);
@@ -112,7 +120,8 @@ class Solution {
         while (!pq.isEmpty()) {
             int[] temp = pq.poll();
             int x = temp[1], dx = temp[0];
-            if (dx > dist[x - 1]) continue;
+          	// 一个节点可能多次重复入队，只有第一次出队的才有效，剪枝
+            if (dx > dist[x - 1]) continue;  
             count--;
             ret = dx;
             for (int i = he[x]; i != -1; i = ne[i]) {
