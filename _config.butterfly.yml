@@ -232,7 +232,7 @@ aside:
       link: https://github.com/why41bg
   card_announcement:
     enable: true
-    content: 社会的边角料，妈妈的小骄傲
+    content: 今天也想成为算法高手
   card_recent_post:
     enable: true
     limit: 5 # if set 0 will show all
