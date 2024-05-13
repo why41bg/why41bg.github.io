@@ -3,7 +3,7 @@ title: Semaphore
 date: 2024-04-02 01:42:40
 tags:
 - JUC
-- java
+- Java
 ---
 
 # Semaphore
