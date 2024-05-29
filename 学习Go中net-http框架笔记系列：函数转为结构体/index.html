@@ -1,0 +1,287 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>学习Go中net/http框架笔记系列：函数转为结构体 | Blog</title><meta name="author" content="why"><meta name="copyright" content="why"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="net&#x2F;http 是 Go 中用于快速构建 Web 应用的标准库，使用 net&#x2F;http 构建 server 的核心在于注册路由，即创建用户请求与具体的处理逻辑之间的映射关系（很像操作系统中系统调用和内核程序的关系）。下面是一个注册路由的简单的 demo。 1234567891011121314151617181920212223package mainimport (	&amp;qu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习Go中net&#x2F;http框架笔记系列：函数转为结构体">
+<meta property="og:url" content="https://why41bg.github.io/blog/%E5%AD%A6%E4%B9%A0Go%E4%B8%ADnet-http%E6%A1%86%E6%9E%B6%E7%AC%94%E8%AE%B0%E7%B3%BB%E5%88%97%EF%BC%9A%E5%87%BD%E6%95%B0%E8%BD%AC%E4%B8%BA%E7%BB%93%E6%9E%84%E4%BD%93/">
+<meta property="og:site_name" content="Blog">
+<meta property="og:description" content="net&#x2F;http 是 Go 中用于快速构建 Web 应用的标准库，使用 net&#x2F;http 构建 server 的核心在于注册路由，即创建用户请求与具体的处理逻辑之间的映射关系（很像操作系统中系统调用和内核程序的关系）。下面是一个注册路由的简单的 demo。 1234567891011121314151617181920212223package mainimport (	&amp;qu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://why41bg.github.io/blog/img/qq.png">
+<meta property="article:published_time" content="2024-05-29T16:03:15.000Z">
+<meta property="article:modified_time" content="2024-05-29T16:47:57.624Z">
+<meta property="article:author" content="why">
+<meta property="article:tag" content="GoLang">
+<meta property="article:tag" content="net&#x2F;http">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://why41bg.github.io/blog/img/qq.png"><link rel="shortcut icon" href="/blog/img/favicon.png"><link rel="canonical" href="https://why41bg.github.io/blog/%E5%AD%A6%E4%B9%A0Go%E4%B8%ADnet-http%E6%A1%86%E6%9E%B6%E7%AC%94%E8%AE%B0%E7%B3%BB%E5%88%97%EF%BC%9A%E5%87%BD%E6%95%B0%E8%BD%AC%E4%B8%BA%E7%BB%93%E6%9E%84%E4%BD%93/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/blog/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '学习Go中net/http框架笔记系列：函数转为结构体',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2024-05-30 00:47:57'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (true) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/blog/img/qq.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/blog/" title="Blog"><span class="site-name">Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">学习Go中net/http框架笔记系列：函数转为结构体</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2024-05-29T16:03:15.000Z" title="发表于 2024-05-30 00:03:15">2024-05-30</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="学习Go中net/http框架笔记系列：函数转为结构体"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>net&#x2F;http 是 Go 中用于快速构建 Web 应用的标准库，使用 net&#x2F;http 构建 server 的核心在于注册路由，即创建用户请求与具体的处理逻辑之间的映射关系（很像操作系统中系统调用和内核程序的关系）。下面是一个注册路由的简单的 demo。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// indexHandler 就是具体的处理函数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">indexHandler</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	_, err := fmt.Fprintf(w, <span class="string">&quot;hello world&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/&quot;</span>, indexHandler)</span><br><span class="line">	err := http.ListenAndServe(<span class="string">&quot;:8000&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="http-HandleFunc"><a href="#http-HandleFunc" class="headerlink" title="http.HandleFunc"></a>http.HandleFunc</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http.HandleFunc(<span class="string">&quot;/&quot;</span>, indexHandler)</span><br></pre></td></tr></table></figure>
+
+<p>上面这句代码绑定了一个路由关系，所有 <code>/</code> 请求都将路由到我们定义好的 <code>indexHandler</code> 函数进行处理。<code>HandleFunc</code> 源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HandleFunc registers the handler function for the given pattern in [DefaultServeMux].</span></span><br><span class="line"><span class="comment">// The documentation for [ServeMux] explains how patterns are matched.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HandleFunc</span><span class="params">(pattern <span class="type">string</span>, handler <span class="keyword">func</span>(ResponseWriter, *Request)</span></span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> use121 &#123;</span><br><span class="line">		DefaultServeMux.mux121.handleFunc(pattern, handler)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		DefaultServeMux.register(pattern, HandlerFunc(handler))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>HandleFunc</code> 函数接收两个参数，一个是请求路径，另一个是对应的处理函数。在 Go 语言中，函数是一等公民，可以被作为值来传递。这里的 <code>handler</code> 就是一个函数值，它可以被传递给 <code>HandleFunc</code> 函数，并在 HandleFunc 函数内部被调用。</p>
+<h1 id="继续跟进"><a href="#继续跟进" class="headerlink" title="继续跟进"></a>继续跟进</h1><p>跟进 <code>handlerFunc</code> 函数，源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Formerly ServeMux.HandleFunc.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *serveMux121)</span></span> handleFunc(pattern <span class="type">string</span>, handler <span class="function"><span class="keyword">func</span><span class="params">(ResponseWriter, *Request)</span></span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> handler == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">&quot;http: nil handler&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	mux.handle(pattern, HandlerFunc(handler))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续跟进 <code>mux.handle</code> 函数，源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Formerly ServeMux.Handle.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *serveMux121)</span></span> handle(pattern <span class="type">string</span>, handler Handler) &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终调用了 <code>serveMux121</code> 结构体中的 <code>handle</code> 方法，该结构体保存了路由关系，该函数就用于注册路由关系，可以看到，函数接收两个参数，一个是请求 <code>pattern</code>，第二个是 <code>Handler</code> 对象。<strong>关键点来了</strong>，在整个注册流程中，我们传递的始终都是一个请求路径和对应的处理逻辑函数，可是最后需要的是一个对象。那么到底在哪一步开始，我们传递的函数变成了对象呢？</p>
+<h1 id="函数转化为对象"><a href="#函数转化为对象" class="headerlink" title="函数转化为对象"></a>函数转化为对象</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mux.handle(pattern, HandlerFunc(handler))</span><br></pre></td></tr></table></figure>
+
+<p>这句代码实质上就是对 <code>handler</code> 进行了类型强转，将其从一个函数类型转变为了一个 <code>Handler</code> 类型。那么继续来看一下和 <code>HandlerFunc</code> 有关的源码吧。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// The HandlerFunc type is an adapter to allow the use of</span></span><br><span class="line"><span class="comment">// ordinary functions as HTTP handlers. If f is a function</span></span><br><span class="line"><span class="comment">// with the appropriate signature, HandlerFunc(f) is a</span></span><br><span class="line"><span class="comment">// [Handler] that calls f.</span></span><br><span class="line"><span class="keyword">type</span> HandlerFunc <span class="function"><span class="keyword">func</span><span class="params">(ResponseWriter, *Request)</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ServeHTTP calls f(w, r).</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f HandlerFunc)</span></span> ServeHTTP(w ResponseWriter, r *Request) &#123;</span><br><span class="line">	f(w, r)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对这部分源码的解释如下：<code>HandlerFunc</code> 被定义为一个函数类型，这个函数接受两个参数，一个是 <code>ResponseWriter</code> 类型，另一个是指向 <code>Request</code> 类型的指针，并且这个函数没有返回值。  这样的定义允许将函数作为值来使用，可以将它们存储在变量中，作为参数传递，或者从其他函数中返回。这为编写可以接受用户定义行为的通用代码提供了可能，因为用户可以通过定义和传递符合特定签名的函数来定制这些行为。</p>
+<p><code>(f HandlerFunc)</code> 是一个接收器，它将 <code>ServeHTTP</code> 方法绑定到 <code>HandlerFunc</code> 类型上。这样，任何 <code>HandlerFunc</code> 类型的变量就可以调用 <code>ServeHTTP</code> 方法。又因为 <code>HandlerFunc</code> 实现了 <code>ServeHTTP</code> 方法，因此它就成为了 <code>Handler</code> 的一个对象，<code>Handler</code> 定义的源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Handler <span class="keyword">interface</span> &#123;</span><br><span class="line">	ServeHTTP(ResponseWriter, *Request)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>总的来说，<code>HandlerFunc</code> 是一个类型，只不过表示的是一个具有 <code>func(ResponseWriter, *Request)</code> 签名的函数类型，并且这种类型实现了 <code>ServeHTTP</code> 方法（在 <code>ServeHTTP</code> 方法中又调用了自身），也就是说这个类型的函数其实就是一个 <code>Handler</code> 类型的对象。利用这种类型转换，就可以将一个 <code>handler</code> 函数转换为一个 <code>Handler</code> 对象，而不需要定义一个结构体，再让这个结构实现 <code>ServeHTTP</code> 方法。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://why41bg.github.io/blog">why</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://why41bg.github.io/blog/%E5%AD%A6%E4%B9%A0Go%E4%B8%ADnet-http%E6%A1%86%E6%9E%B6%E7%AC%94%E8%AE%B0%E7%B3%BB%E5%88%97%EF%BC%9A%E5%87%BD%E6%95%B0%E8%BD%AC%E4%B8%BA%E7%BB%93%E6%9E%84%E4%BD%93/">https://why41bg.github.io/blog/%E5%AD%A6%E4%B9%A0Go%E4%B8%ADnet-http%E6%A1%86%E6%9E%B6%E7%AC%94%E8%AE%B0%E7%B3%BB%E5%88%97%EF%BC%9A%E5%87%BD%E6%95%B0%E8%BD%AC%E4%B8%BA%E7%BB%93%E6%9E%84%E4%BD%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://why41bg.github.io/blog" target="_blank">Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/blog/tags/GoLang/">GoLang</a><a class="post-meta__tags" href="/blog/tags/net-http/">net/http</a></div><div class="post_share"><div class="social-share" data-image="/blog/img/qq.png" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/blog/%E7%BC%93%E5%AD%98%E5%AE%9E%E8%B7%B5%E5%BA%94%E7%94%A8/" title="缓存实践应用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">缓存实践应用</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/blog/img/qq.png" onerror="this.onerror=null;this.src='/blog/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">why</div><div class="author-info__description">不如吃茶去</div></div><div class="card-info-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/why41bg"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">今天也想成为算法高手</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#http-HandleFunc"><span class="toc-number">1.</span> <span class="toc-text">http.HandleFunc</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%A7%E7%BB%AD%E8%B7%9F%E8%BF%9B"><span class="toc-number">2.</span> <span class="toc-text">继续跟进</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%BD%AC%E5%8C%96%E4%B8%BA%E5%AF%B9%E8%B1%A1"><span class="toc-number">3.</span> <span class="toc-text">函数转化为对象</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/%E5%AD%A6%E4%B9%A0Go%E4%B8%ADnet-http%E6%A1%86%E6%9E%B6%E7%AC%94%E8%AE%B0%E7%B3%BB%E5%88%97%EF%BC%9A%E5%87%BD%E6%95%B0%E8%BD%AC%E4%B8%BA%E7%BB%93%E6%9E%84%E4%BD%93/" title="学习Go中net/http框架笔记系列：函数转为结构体">学习Go中net/http框架笔记系列：函数转为结构体</a><time datetime="2024-05-29T16:03:15.000Z" title="发表于 2024-05-30 00:03:15">2024-05-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/%E7%BC%93%E5%AD%98%E5%AE%9E%E8%B7%B5%E5%BA%94%E7%94%A8/" title="缓存实践应用">缓存实践应用</a><time datetime="2024-05-15T02:54:54.000Z" title="发表于 2024-05-15 10:54:54">2024-05-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%9A%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" title="设计模式：装饰模式">设计模式：装饰模式</a><time datetime="2024-05-14T03:25:33.000Z" title="发表于 2024-05-14 11:25:33">2024-05-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%9A%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/" title="设计模式：责任链模式">设计模式：责任链模式</a><time datetime="2024-05-13T07:34:33.000Z" title="发表于 2024-05-13 15:34:33">2024-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/LeetCode300%E9%A2%98%E9%87%8C%E7%A8%8B%E7%A2%91/" title="LeetCode300题里程碑">LeetCode300题里程碑</a><time datetime="2024-05-09T08:46:08.000Z" title="发表于 2024-05-09 16:46:08">2024-05-09</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By why</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Good luck && Have fun</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/blog/js/utils.js"></script><script src="/blog/js/main.js"></script><script src="/blog/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法制,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
