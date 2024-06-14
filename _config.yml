@@ -104,5 +104,5 @@ theme: butterfly
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repository: https://github.com/wy66613/blog.git
+  repository: https://github.com/why41bg/blog.git
   branch: gh-pages
