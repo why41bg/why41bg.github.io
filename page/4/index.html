@@ -9,13 +9,13 @@
 <meta property="article:author" content="why">
 <meta property="article:tag" content="why">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://why41bg.github.io/blog/img/qq.png"><link rel="shortcut icon" href="/blog/img/favicon.png"><link rel="canonical" href="https://why41bg.github.io/blog/page/4/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+<meta name="twitter:image" content="https://why41bg.github.io/blog/img/qq.png"><link rel="shortcut icon" href="/blog/img/favicon.png"><link rel="canonical" href="https://why41bg.github.io/blog/page/4/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
   root: '/blog/',
   algolia: undefined,
   localSearch: undefined,
   translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -36,11 +36,9 @@
   copyright: undefined,
   lightbox: 'fancybox',
   Snackbar: undefined,
-  source: {
-    justifiedGallery: {
-      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
-      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
-    }
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
   },
   isPhotoFigcaption: false,
   islazyload: false,
@@ -56,85 +54,78 @@
   isHome: true,
   isHighlightShrink: true,
   isToc: false,
-  postUpdate: '2024-06-15 01:41:14'
-}</script><noscript><style type="text/css">
-  #nav {
-    opacity: 1
-  }
-  .justified-gallery img {
-    opacity: 1
-  }
-
-  #recent-posts time,
-  #post-meta time {
-    display: inline !important
-  }
-</style></noscript><script>(win=>{
-    win.saveToLocal = {
-      set: function setWithExpiry(key, value, ttl) {
-        if (ttl === 0) return
-        const now = new Date()
-        const expiryDay = ttl * 86400000
-        const item = {
-          value: value,
-          expiry: now.getTime() + expiryDay,
+  postUpdate: '2024-06-15 01:48:21'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
         }
-        localStorage.setItem(key, JSON.stringify(item))
-      },
-
-      get: function getWithExpiry(key) {
-        const itemStr = localStorage.getItem(key)
-
-        if (!itemStr) {
-          return undefined
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
         }
-        const item = JSON.parse(itemStr)
-        const now = new Date()
 
-        if (now.getTime() > item.expiry) {
-          localStorage.removeItem(key)
-          return undefined
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
         }
-        return item.value
-      }
-    }
-  
-    win.getScript = url => new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = url
-      script.async = true
-      script.onerror = reject
-      script.onload = script.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        script.onload = script.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(script)
-    })
-  
-    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = url
-      if (id) link.id = id
-      link.onerror = reject
-      link.onload = link.onreadystatechange = function() {
-        const loadState = this.readyState
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-        link.onload = link.onreadystatechange = null
-        resolve()
-      }
-      document.head.appendChild(link)
-    })
-  
-      win.activateDarkMode = function () {
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
         document.documentElement.setAttribute('data-theme', 'dark')
         if (document.querySelector('meta[name="theme-color"]') !== null) {
           document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
         }
       }
-      win.activateLightMode = function () {
+      win.activateLightMode = () => {
         document.documentElement.setAttribute('data-theme', 'light')
         if (document.querySelector('meta[name="theme-color"]') !== null) {
           document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
@@ -142,9 +133,9 @@
       }
       const t = saveToLocal.get('theme')
     
-          if (t === 'dark') activateDarkMode()
-          else if (t === 'light') activateLightMode()
-        
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
       const asideStatus = saveToLocal.get('aside-status')
       if (asideStatus !== undefined) {
         if (asideStatus === 'hide') {
@@ -154,12 +145,12 @@
         }
       }
     
-    const detectApple = () => {
-      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
-        document.documentElement.classList.add('apple')
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
       }
-    }
-    detectApple()
+      detectApple()
     })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
   const $loadingBox = document.getElementById('loading-box')
   const $body = document.body
@@ -181,14 +172,14 @@
     document.addEventListener('pjax:send', () => { preloader.initLoading() })
     document.addEventListener('pjax:complete', () => { preloader.endLoading() })
   }
-})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/blog/img/qq.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/blog/" title="Stop2Think"><span class="site-name">Stop2Think</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Stop2Think</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%B8%80%EF%BC%89/" title="xv6中trap的执行流（一）">xv6中trap的执行流（一）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-09T05:48:36.000Z" title="发表于 2023-11-09 13:48:36">2023-11-09</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/blog/img/qq.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/blog/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/blog/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/blog/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/blog/" title="Stop2Think"><span class="site-name">Stop2Think</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Stop2Think</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/xv6%E4%B8%ADtrap%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%EF%BC%88%E4%B8%80%EF%BC%89/" title="xv6中trap的执行流（一）">xv6中trap的执行流（一）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-09T05:48:36.000Z" title="发表于 2023-11-09 13:48:36">2023-11-09</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 关于 xv6 中 trap 机制的实现及执行流程，Robert 教授讲得实在是太好了，让我实在不忍心用自己的话记录关于这一节课知识的理解，以防出现任何违背了 Robert 教授原本意愿的地方。因此，本文中记录的绝大多数都是 Robert 教授原话的翻译，只在些许小地方加入了作者自己理解，特别感谢翻译者准确用心的翻译。
 
 Trap的执行流程
 当在 shell 中使用 write 系统调用时，操作系统将从用户态转变为内核态，从而请求内核提供服务。实际上，write 通过执行 ecall 指令来请求系统调用，ecall 指令会切换到具有 supervisor mode 的内核中，这里涉及到的其实就是系统调用方面的知识了。write 的本质其实就是通过 Trap（陷入），用户程序主动将处理器控制权交给操作系统，由操作系统内核提供需要的服务，然后操作系统再将控制权还给用户程序，下图是 write 系统调用的执行流程。
 
 ECALL指令执行前的状态
-接下来，Robert 带我们进入了 gdb 的世界中，通过跟踪一个 XV6 的系统调用，来演示上述 Trap 的执行流。我们跟踪的这个系统调用，也就 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E4%BB%A5x86%E5%88%86%E6%9E%90%E6%A0%88%E5%B8%A7%E7%9A%84%E5%88%87%E6%8D%A2%E8%BF%87%E7%A8%8B/" title="以x86分析栈帧的切换过程">以x86分析栈帧的切换过程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-08T13:13:34.000Z" title="发表于 2023-11-08 21:13:34">2023-11-08</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/Stack-Frame/">Stack Frame</a></span></div><div class="content">
+接下来，Robert 带我们进入了 gdb 的世界中，通过跟踪一个 XV6 的系统调用，来演示上述 Trap 的执行流。我们跟踪的这个系统调用，也就 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E4%BB%A5x86%E5%88%86%E6%9E%90%E6%A0%88%E5%B8%A7%E7%9A%84%E5%88%87%E6%8D%A2%E8%BF%87%E7%A8%8B/" title="以x86分析栈帧的切换过程">以x86分析栈帧的切换过程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-08T13:13:34.000Z" title="发表于 2023-11-08 21:13:34">2023-11-08</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/Stack-Frame/">Stack Frame</a></span></div><div class="content">
 最近在学习MIT6.S018时，对栈帧的理解及切换过程的学习遇到了困难。在网上找了很多资料，最终看到了一个视频，以x86为基础分析了栈帧的切换过程。遂写下此文记录一下自己的理解，并举一反三，理解XV6中的栈帧结构及其切换过程。
 
 XV6中栈结构
@@ -199,7 +190,7 @@ x86中函数调用栈在内存中的位置如下图所示。通常来说，栈�
 
 x86中栈的切换
 下面给出一段执行函数调用的汇编代码，然后根据这段汇编代码来分析栈帧创建及其销毁的完整流程，并将x86中栈帧的创建与XV6中的栈帧结构图作对比，我们将发现其基本一致。下面给出两个函数的汇编代码，分别是 caller 函数和 add 函数，在 caller 函数中将调用 add 函数。
-123456789101112131415caller:push ebpmov ebp,espsub esp,24mov [ebp-12],125m ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Traps/" title="MIT 6.S081 Operating System Enginerring Lab Traps">MIT 6.S081 Operating System Enginerring Lab Traps</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-07T09:09:23.000Z" title="发表于 2023-11-07 17:09:23">2023-11-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+123456789101112131415caller:push ebpmov ebp,espsub esp,24mov [ebp-12],125m ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Traps/" title="MIT 6.S081 Operating System Enginerring Lab Traps">MIT 6.S081 Operating System Enginerring Lab Traps</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-07T09:09:23.000Z" title="发表于 2023-11-07 17:09:23">2023-11-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 This lab explores how system calls are implemented using traps.
 
 RISC-V assembly (easy)
@@ -210,7 +201,7 @@ RISC-V assembly (easy)
 1make fs.img
 Q1：Which registers contain arguments to functions? For example, which register holds 13 in main’s call to printf ?
 user/call.ams 文件中关于 main 函数如下：
-12345678910111213141516void main(void) &#123;  1c:	1141                	addi	sp,sp,-16  1e:	e406                	sd	ra,8(sp)  20:	e022                	sd	s0 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Page%20tables/" title="MIT 6.S081 Operating System Enginerring Lab Page tables">MIT 6.S081 Operating System Enginerring Lab Page tables</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-03T15:52:42.000Z" title="发表于 2023-11-03 23:52:42">2023-11-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+12345678910111213141516void main(void) &#123;  1c:	1141                	addi	sp,sp,-16  1e:	e406                	sd	ra,8(sp)  20:	e022                	sd	s0 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Page%20tables/" title="MIT 6.S081 Operating System Enginerring Lab Page tables">MIT 6.S081 Operating System Enginerring Lab Page tables</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-11-03T15:52:42.000Z" title="发表于 2023-11-03 23:52:42">2023-11-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 很喜欢 Frans 教授的开场白：当我还是个学生并第一次听到学到这个词（pagetable）时，我认为它还是很直观简单的。这能有多难呢？无非就是个表单，将虚拟地址和物理地址映射起来，实际可能稍微复杂一点，但是应该不会太难。可是当我开始通过代码管理虚拟内存，我才知道虚拟内存比较棘手，比较有趣，功能也很强大。
 这部分实验也证明了 pagetable 确实如此。
 
@@ -220,7 +211,7 @@ A process’s user address space, with its initial stack.
 这是XV6中关于用户进程的地址空间定义，在下面的实验的会用到。
 Speed up system calls (easy)
 
-Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E9%A1%B5%E8%A1%A8%E7%9A%84%E6%9C%BA%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0/" title="页表的机理及实现">页表的机理及实现</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-30T03:52:14.000Z" title="发表于 2023-10-30 11:52:14">2023-10-30</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E9%A1%B5%E8%A1%A8%E7%9A%84%E6%9C%BA%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0/" title="页表的机理及实现">页表的机理及实现</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-30T03:52:14.000Z" title="发表于 2023-10-30 11:52:14">2023-10-30</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 本篇文章以xv6为基础，记录在学习操作系统过程中对页表及其实现机制的理解。操作系统需要在应用程序与应用程序之间、应用程序和内核程序之间提供强隔离性。而页表就提供了一种这样的强隔离性。
 
 基础概念介绍
@@ -229,7 +220,7 @@ Some operating systems (e.g., Linux) speed up certain system calls by sharing da
 对于任何一条带地址的指令，其中的地址应该认为是虚拟内存地址，而不是物理地址。虚拟内存地址仅对其隶属的进程可见，一个进程看不见其它进程的虚拟地址，这就在应用程序之间提供了强隔离性。一条带虚拟地址的指令结果如下图：
 
 CPU在执行一条执行时，首先会将虚拟内存地址发送给内存管理单元（MMU，Memory Management Unit），内存管理单元会将虚拟地址翻译成物理地址。之后这个物理地址会被用来索引物理内存，并从物理内存加载，或者向物理内存存储数据。从CPU的角度来说，一旦MMU打开了，它执行的每条指令中的地址都是虚拟内存地址。
-这些虚拟地址到物理地址的映射关系是保存在一张 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E5%AF%B9xv6%E7%B3%BB%E7%BB%9Fshell%E7%9A%84%E5%88%86%E6%9E%90/" title="对xv6系统shell的分析">对xv6系统shell的分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-26T15:21:20.000Z" title="发表于 2023-10-26 23:21:20">2023-10-26</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+这些虚拟地址到物理地址的映射关系是保存在一张 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/%E5%AF%B9xv6%E7%B3%BB%E7%BB%9Fshell%E7%9A%84%E5%88%86%E6%9E%90/" title="对xv6系统shell的分析">对xv6系统shell的分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-26T15:21:20.000Z" title="发表于 2023-10-26 23:21:20">2023-10-26</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 xv6源码文档中关于 shell 的实现代码足足有11页之多，遂写下此文章来记录学习xv6过程中，对 shell 实现方法的分析，从而为学习其他更加复杂的操作系统建立一个基础框架。
 
 shell 是一个最基础的用户程序，它的工作原理为主循环通过循环读取命令行的输入，然后使用 fork 系统调用生成一个 shell 进程的子进程。子进程将调用 exec 执行用户命令，而父进程调用 wait 等待子进程完成。这也就对应了我们在命令行中输入一条命令后，命令行会不断打印命令执行过程中的输出，这个过程其实就是 shell 子进行调用 exec 执行用户命令的过程，命令执行完毕后，父 shell 进程结束 wait 等待，此时我们才能继续输入下一条命令。
@@ -243,7 +234,7 @@ tast_struct
 tast_struct称为进程描述符结构，用来完整描述一个进程的所有信息。例如这个进程打开的文件、它的内存空间和进程的状态等等。这里需要着重注意的就是进程打开的文件，在tast_struct中与其有关的关键代码部分如下：
 1234struct task_struct&#123;    /* open file information */    struct files_struct *files;&#125;
 files 是一个指针，指向一个名为 files_struct 的结构体，该结构体用来管理进程打开的所有文件。
-files ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20System%20calls/" title="MIT 6.S081 Operating System Enginerring Lab System calls">MIT 6.S081 Operating System Enginerring Lab System calls</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-22T03:56:28.000Z" title="发表于 2023-10-22 11:56:28">2023-10-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+files ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20System%20calls/" title="MIT 6.S081 Operating System Enginerring Lab System calls">MIT 6.S081 Operating System Enginerring Lab System calls</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-22T03:56:28.000Z" title="发表于 2023-10-22 11:56:28">2023-10-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 In this lab you will add some new system calls to xv6, which will help you understand how they work and will expose you to some of the internals of the xv6 kernel. You will add more system calls in later labs.
 本实验主要就是自己实现几个简单的系统调用并添加到XV6的内核当中。
 实验的具体要求在这里。
@@ -253,7 +244,7 @@ System call tracing (moderate)😔
 
 在用户空间，在 user/user.h 中声明一个跳板函数 trace()。
 在用户空间，在 user/usys.S 中，跳板函数 trace() 使用 ecall 指令，把控制权交给 CPU，进入到内核态。
-在内核空间，在 kernel/sy ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Utilities/" title="MIT 6.S081 Operating System Enginerring Lab Utilities">MIT 6.S081 Operating System Enginerring Lab Utilities</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-10T09:48:36.000Z" title="发表于 2023-10-10 17:48:36">2023-10-10</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
+在内核空间，在 kernel/sy ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/MIT%206.S081%20Operating%20System%20Enginerring%20Lab%20Utilities/" title="MIT 6.S081 Operating System Enginerring Lab Utilities">MIT 6.S081 Operating System Enginerring Lab Utilities</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-10-10T09:48:36.000Z" title="发表于 2023-10-10 17:48:36">2023-10-10</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/blog/categories/MIT-6-S081/">MIT 6.S081</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/XV6/">XV6</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/blog/tags/OS/">OS</a></span></div><div class="content">
 This lab will familiarize you with xv6 and its system calls.
 本实验旨在实现几个 unix 实用工具，帮助熟悉 XV6 的开发环境以及系统调用。
 实验的具体要求在这里。
@@ -278,7 +269,7 @@ argc, argv是什么？
             </div>
             <ul class="card-category-list" id="aside-cat-list">
             <li class="card-category-list-item "><a class="card-category-list-link" href="/blog/categories/GoF%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"><span class="card-category-list-name">GoF设计模式</span><span class="card-category-list-count">7</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/blog/categories/MIT-6-S081/"><span class="card-category-list-name">MIT 6.S081</span><span class="card-category-list-count">7</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/blog/categories/%E3%80%8AEffective-Java%E3%80%8B/"><span class="card-category-list-name">《Effective Java》</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/blog/categories/%E6%83%B3%E6%88%90%E4%B8%BA%E7%AE%97%E6%B3%95%E9%AB%98%E6%89%8B/"><span class="card-category-list-name">想成为算法高手</span><span class="card-category-list-count">12</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/blog/categories/%E6%88%90%E9%95%BF%E7%9E%AC%E9%97%B4/"><span class="card-category-list-name">成长瞬间</span><span class="card-category-list-count">2</span></a></li>
-            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/blog/tags/%E7%B1%BB%E5%92%8C%E6%8E%A5%E5%8F%A3%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%AF%BC%E5%8E%9F%E5%88%99/" style="font-size: 1.1em; color: #999">类和接口的设计指导原则</a> <a href="/blog/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">排序</a> <a href="/blog/tags/%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/" style="font-size: 1.1em; color: #999">算法基础</a> <a href="/blog/tags/XV6/" style="font-size: 1.44em; color: #99a7ba">XV6</a> <a href="/blog/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.1em; color: #999">数学</a> <a href="/blog/tags/JUC/" style="font-size: 1.16em; color: #999b9e">JUC</a> <a href="/blog/tags/net-http/" style="font-size: 1.1em; color: #999">net/http</a> <a href="/blog/tags/Java/" style="font-size: 1.33em; color: #99a2af">Java</a> <a href="/blog/tags/%E5%8F%8C%E6%8C%87%E9%92%88/" style="font-size: 1.1em; color: #999">双指针</a> <a href="/blog/tags/%E5%9B%BE%E8%AE%BA/" style="font-size: 1.21em; color: #999ea4">图论</a> <a href="/blog/tags/%E5%8D%95%E8%B0%83%E6%A0%88/" style="font-size: 1.1em; color: #999">单调栈</a> <a href="/blog/tags/DP/" style="font-size: 1.16em; color: #999b9e">DP</a> <a href="/blog/tags/DeadLock/" style="font-size: 1.1em; color: #999">DeadLock</a> <a href="/blog/tags/GoLang/" style="font-size: 1.1em; color: #999">GoLang</a> <a href="/blog/tags/OS/" style="font-size: 1.5em; color: #99a9bf">OS</a> <a href="/blog/tags/GoF%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.27em; color: #99a0a9">GoF设计模式</a> <a href="/blog/tags/Stack-Frame/" style="font-size: 1.1em; color: #999">Stack Frame</a> <a href="/blog/tags/Floyd/" style="font-size: 1.1em; color: #999">Floyd</a> <a href="/blog/tags/%E3%80%8AEffective-Java%E3%80%8B/" style="font-size: 1.1em; color: #999">《Effective Java》</a> <a href="/blog/tags/%E4%BA%8C%E5%88%86/" style="font-size: 1.1em; color: #999">二分</a> <a href="/blog/tags/%E7%AE%97%E6%B3%95/" style="font-size: 1.39em; color: #99a4b4">算法</a> <a href="/blog/tags/%E6%9A%91%E6%9C%9F%E5%AE%9E%E4%B9%A0/" style="font-size: 1.16em; color: #999b9e">暑期实习</a> <a href="/blog/tags/%E5%AD%90%E5%BA%8F%E5%88%97/" style="font-size: 1.1em; color: #999">子序列</a> <a href="/blog/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a> <a href="/blog/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 1.1em; color: #999">位运算</a> <a href="/blog/tags/BFS/" style="font-size: 1.16em; color: #999b9e">BFS</a> <a href="/blog/tags/DFS/" style="font-size: 1.1em; color: #999">DFS</a> <a href="/blog/tags/%E8%BE%97%E8%BD%AC%E7%9B%B8%E9%99%A4%E6%B3%95/" style="font-size: 1.1em; color: #999">辗转相除法</a> <a href="/blog/tags/%E5%BB%BA%E5%9B%BE%E6%96%B9%E6%B3%95/" style="font-size: 1.1em; color: #999">建图方法</a> <a href="/blog/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.16em; color: #999b9e">最短路</a> <a href="/blog/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/blog/tags/%E5%9B%9E%E6%BA%AF/" style="font-size: 1.1em; color: #999">回溯</a> <a href="/blog/tags/%E7%BC%93%E5%AD%98/" style="font-size: 1.1em; color: #999">缓存</a> <a href="/blog/tags/%E5%AD%98%E5%9B%BE%E6%96%B9%E6%B3%95/" style="font-size: 1.1em; color: #999">存图方法</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/05/"><span class="card-archive-list-date">五月 2024</span><span class="card-archive-list-count">7</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/04/"><span class="card-archive-list-date">四月 2024</span><span class="card-archive-list-count">18</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2023/11/"><span class="card-archive-list-date">十一月 2023</span><span class="card-archive-list-count">8</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2023/10/"><span class="card-archive-list-date">十月 2023</span><span class="card-archive-list-count">5</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">39</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2023-09-10T00:00:00.000Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">64.7k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-06-14T17:41:14.256Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By why</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Good luck && Have fun</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/blog/js/utils.js"></script><script src="/blog/js/main.js"></script><script src="/blog/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"><script>window.typedJSFn = {
+            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/blog/tags/DeadLock/" style="font-size: 1.1em; color: #999">DeadLock</a> <a href="/blog/tags/Stack-Frame/" style="font-size: 1.1em; color: #999">Stack Frame</a> <a href="/blog/tags/GoLang/" style="font-size: 1.1em; color: #999">GoLang</a> <a href="/blog/tags/%E5%8F%8C%E6%8C%87%E9%92%88/" style="font-size: 1.1em; color: #999">双指针</a> <a href="/blog/tags/net-http/" style="font-size: 1.1em; color: #999">net/http</a> <a href="/blog/tags/BFS/" style="font-size: 1.16em; color: #999b9e">BFS</a> <a href="/blog/tags/Java/" style="font-size: 1.33em; color: #99a2af">Java</a> <a href="/blog/tags/XV6/" style="font-size: 1.44em; color: #99a7ba">XV6</a> <a href="/blog/tags/%E3%80%8AEffective-Java%E3%80%8B/" style="font-size: 1.1em; color: #999">《Effective Java》</a> <a href="/blog/tags/%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/" style="font-size: 1.1em; color: #999">算法基础</a> <a href="/blog/tags/%E8%BE%97%E8%BD%AC%E7%9B%B8%E9%99%A4%E6%B3%95/" style="font-size: 1.1em; color: #999">辗转相除法</a> <a href="/blog/tags/%E7%AE%97%E6%B3%95/" style="font-size: 1.39em; color: #99a4b4">算法</a> <a href="/blog/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">排序</a> <a href="/blog/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/blog/tags/%E6%9A%91%E6%9C%9F%E5%AE%9E%E4%B9%A0/" style="font-size: 1.16em; color: #999b9e">暑期实习</a> <a href="/blog/tags/%E4%BA%8C%E5%88%86/" style="font-size: 1.1em; color: #999">二分</a> <a href="/blog/tags/%E5%AD%98%E5%9B%BE%E6%96%B9%E6%B3%95/" style="font-size: 1.1em; color: #999">存图方法</a> <a href="/blog/tags/%E7%BC%93%E5%AD%98/" style="font-size: 1.1em; color: #999">缓存</a> <a href="/blog/tags/%E5%9B%9E%E6%BA%AF/" style="font-size: 1.1em; color: #999">回溯</a> <a href="/blog/tags/%E5%BB%BA%E5%9B%BE%E6%96%B9%E6%B3%95/" style="font-size: 1.1em; color: #999">建图方法</a> <a href="/blog/tags/DP/" style="font-size: 1.16em; color: #999b9e">DP</a> <a href="/blog/tags/OS/" style="font-size: 1.5em; color: #99a9bf">OS</a> <a href="/blog/tags/%E5%8D%95%E8%B0%83%E6%A0%88/" style="font-size: 1.1em; color: #999">单调栈</a> <a href="/blog/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 1.1em; color: #999">位运算</a> <a href="/blog/tags/%E5%AD%90%E5%BA%8F%E5%88%97/" style="font-size: 1.1em; color: #999">子序列</a> <a href="/blog/tags/%E5%9B%BE%E8%AE%BA/" style="font-size: 1.21em; color: #999ea4">图论</a> <a href="/blog/tags/GoF%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.27em; color: #99a0a9">GoF设计模式</a> <a href="/blog/tags/DFS/" style="font-size: 1.1em; color: #999">DFS</a> <a href="/blog/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.16em; color: #999b9e">最短路</a> <a href="/blog/tags/%E7%B1%BB%E5%92%8C%E6%8E%A5%E5%8F%A3%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%AF%BC%E5%8E%9F%E5%88%99/" style="font-size: 1.1em; color: #999">类和接口的设计指导原则</a> <a href="/blog/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a> <a href="/blog/tags/Floyd/" style="font-size: 1.1em; color: #999">Floyd</a> <a href="/blog/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.1em; color: #999">数学</a> <a href="/blog/tags/JUC/" style="font-size: 1.16em; color: #999b9e">JUC</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/05/"><span class="card-archive-list-date">五月 2024</span><span class="card-archive-list-count">7</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2024/04/"><span class="card-archive-list-date">四月 2024</span><span class="card-archive-list-count">18</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2023/11/"><span class="card-archive-list-date">十一月 2023</span><span class="card-archive-list-count">8</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/blog/archives/2023/10/"><span class="card-archive-list-date">十月 2023</span><span class="card-archive-list-count">5</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">39</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2023-09-10T00:00:00.000Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">64.7k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-06-14T17:48:21.192Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By why</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Good luck && Have fun</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/blog/js/utils.js"></script><script src="/blog/js/main.js"></script><script src="/blog/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"><script>window.typedJSFn = {
   init: (str) => {
     window.typed = new Typed('#subtitle', Object.assign({
       strings: str,
@@ -311,7 +302,7 @@ typedJSFn.run(subtitleType)</script></div><script id="canvas_nest" defer="defer"
 POWERMODE.shake = true;
 POWERMODE.mobile = false;
 document.body.addEventListener('input', POWERMODE);
-</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法制,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
 
 var pjax = new Pjax({
   elements: 'a:not([target="_blank"])',
@@ -323,11 +314,11 @@ var pjax = new Pjax({
 
 document.addEventListener('pjax:send', function () {
 
-  // removeEventListener scroll 
-  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
-  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
 
-  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  document.getElementById('rightside').classList.remove('rightside-show')
   
   if (window.aplayers) {
     for (let i = 0; i < window.aplayers.length; i++) {
@@ -373,8 +364,8 @@ document.addEventListener('pjax:complete', function () {
   typeof Prism === 'object' && Prism.highlightAll()
 })
 
-document.addEventListener('pjax:error', (e) => {
+document.addEventListener('pjax:error', e => {
   if (e.request.status === 404) {
-    pjax.loadUrl('/404.html')
+    pjax.loadUrl('/blog/404')
   }
 })</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
