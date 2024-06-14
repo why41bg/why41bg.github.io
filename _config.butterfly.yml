@@ -343,16 +343,9 @@ mathjax:
 
 # KaTeX
 katex:
-  enable: True 
+  enable: false
   per_page: false
   hide_scrollbar: true
-
-markdown:
-  plugins:
-    - plugin:
-      name: '@neilsustc/markdown-it-katex'
-      options:
-        strict: false
 
 # search (搜索)
 # see https://butterfly.js.org/posts/ceeb73f/#搜索系統
