@@ -1,6 +1,7 @@
 ---
 title: DP子序列问题
 date: 2024-06-12 00:02:56
+mathjax: true
 tags:
 - DP
 - 算法
